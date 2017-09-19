@@ -4,6 +4,7 @@ ManualQC Plugin for eeglab
 things to do
 
 * initial check
+
 eeglab path check
 EEG file attribute check 
 location/trials/pnts/icaweight/
@@ -12,6 +13,7 @@ location/trials/pnts/icaweight/
 * layout of the GUI
 
 * file i/o
+
 fileseach path
 filesearch regexp
 output dir
@@ -21,6 +23,7 @@ file idx
 scroll btn module
 
 * bad channel module
+
 channel properties
 chansel part,
 
@@ -28,6 +31,7 @@ chansel part,
 
 
 * Data quality rating modula
+
 data quality index
 rating and comments
 
