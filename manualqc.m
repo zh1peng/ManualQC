@@ -33,7 +33,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         set(ui.info7,'String','User Rating: Usable')
         set(ui.info6,'String','User Comments: ')
         
-        set(ui.info3,'String','Bad Epoches: ')
+        set(ui.info3,'String','Bad Epochs: ')
         set(ui.info4,'String','Bad Channels: ')
         set(ui.info5,'String','ICs to remove: ')
         try
@@ -73,13 +73,13 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
     end
 % 3 scroll_cmd
     function scroll_cmd(hObject,eventdata)
-        cmd='global EEG tmprej ui; if isempty(TMPREJ), warndlg(''no epoch is selected'',''Manual QC''); clear TMPREJ; else [tmprej, tmprejE] = eegplot2trial(TMPREJ,EEG.pnts, EEG.trials, [1 1 0.783], []); set(ui.info3,''String'',[''Bad Epoches: '', num2str(find(tmprej==1))]); clear tmprejE TMPREJ;end';
+        cmd='global EEG tmprej ui; if isempty(TMPREJ), warndlg(''no epoch is selected'',''Manual QC''); clear TMPREJ; else [tmprej, tmprejE] = eegplot2trial(TMPREJ,EEG.pnts, EEG.trials, [1 1 0.783], []); set(ui.info3,''String'',[''Bad Epochs: '', num2str(find(tmprej==1))]); clear tmprejE TMPREJ;end';
         %          cmd=' if isempty(TMPREJ), warndlg(''no epoch is selected''); else [tmprej, tmprejE] = eegplot2trial(TMPREJ,EEG.pnts, EEG.trials, [1 1 0.783], []); end';
         
         modified_eegplot( EEG.data, 'srate', EEG.srate, 'title', 'eegplot()', ...
             'limits', [EEG.xmin EEG.xmax]*1000,'eloc_file',EEG.chanlocs,'events',EEG.event,'wincolor' ,[1 1 0.783],'command',cmd,'butlabel','Mark')
         %             bad_trials=
-        %             set(ui.info3,'String',['Bad epoches: ', num2str(find(tmprej==1))]);
+        %             set(ui.info3,'String',['Bad epochs: ', num2str(find(tmprej==1))]);
     end
 % 4 badchan_cmd ---to do modify the function
     function badchan_cmd(hObject,eventdata)
@@ -97,8 +97,8 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
     function ica_cmd(hObject,eventdata)
         [EEG]=modified_pop_selectcomps( EEG, [1:28]);
         EEG = eeg_checkset( EEG );
-        %test set(ui.info3,'String',['Bad epoches: ', num2str(1:200)])
-        % set(ui.info2,'String',['Bad epoches: ', num2str(find(tmprej==1))])
+        %test set(ui.info3,'String',['Bad epochs: ', num2str(1:200)])
+        % set(ui.info2,'String',['Bad epochs: ', num2str(find(tmprej==1))])
     end
 % 6 add_cmd
     function add_cmd(hObject,eventdata)
@@ -120,7 +120,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         
         EEG = eeg_checkset( EEG );
         quality_score_before=data_quality(EEG);
-% reject epoches
+% reject epochs
         if ~isempty(tmprej)
             EEG = pop_rejepoch(EEG,tmprej,0);
             EEG = eeg_checkset( EEG );
@@ -207,7 +207,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
 %         set(ui.info7,'String','User Rating: Usable')
 %         set(ui.info6,'String','User Comments: ')
 %         set(ui.info2,'String','Dataset: ')
-%         set(ui.info3,'String','Bad Epoches: ')
+%         set(ui.info3,'String','Bad Epochs: ')
 %         set(ui.info4,'String','Bad Channels: ')
 %         set(ui.info5,'String','ICs to remove: ')
         EEG=[];
@@ -336,7 +336,7 @@ ui.load=uicontrol('Parent', hf, 'Units', 'Normalized', ...
 ui.scroll=uicontrol('Parent', hf, 'Units', 'Normalized', ...
     'Position', [0.45 0.78 0.15 0.06], ...
     'Style', 'pushbutton', ...
-    'String', 'Epoches', ...
+    'String', 'Epochs', ...
     'BackgroundColor',btnblue,...
     'ForegroundColor',txtblue,...
     'FontSize',14,...
@@ -395,11 +395,11 @@ ui.add=uicontrol('Parent', hf, 'Units', 'Normalized', ...
     'FontSize',12,...
     'callback',@add_cmd);
 
-% Line5 Information pannel
+% Line5 Information panel
 ui.info1=uicontrol('Parent', hf,'Units', 'Normalized', ...
     'Position', [0.05 0.61 0.9 0.06], ...
     'Style', 'text', ...
-    'String', 'Information Pannel', ...
+    'String', 'Information Panel', ...
     'BackgroundColor',btnblue,...
     'ForegroundColor',txtblue,...
     'FontSize',18);
@@ -414,7 +414,7 @@ ui.info2=uicontrol('Parent', hf,'Units', 'Normalized', ...
 ui.info3=uicontrol('Parent', hf,'Units', 'Normalized', ...
     'Position', [0.05 0.405 0.9 0.15], ...
     'Style', 'text', ...
-    'String', 'Bad Epoches: ', ...
+    'String', 'Bad Epochs: ', ...
     'BackgroundColor',btnblue,...
     'ForegroundColor',txtblue,...
     'FontSize',12,...
@@ -2558,6 +2558,7 @@ drawnow;
 
 % run the following code until fig get the 'userdata' --zhipeng notes
 waitfor( fig, 'userdata');
+try
 if strcmp(get(fig, 'userdata'), 'clear') | strcmp(get(fig, 'userdata'), 'ok')
     try,
         vals = get(h, 'value');
@@ -2593,6 +2594,7 @@ else
         drawnow;
         
     end;
+end
 end
 end
 
