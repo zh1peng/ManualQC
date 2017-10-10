@@ -1,3 +1,4 @@
+% Please visit zh1peng.github.io/ManualQC for more info
 function manualqc()
 evalin('base','clear')
 evalin('base','QC_log={};')
