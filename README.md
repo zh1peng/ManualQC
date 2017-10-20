@@ -24,7 +24,9 @@ Realized that this could be useful by others who need to do manual QC on eegdata
 
 2017-10-10 Tiny bug fixed/Typo corrected
 
-2017-10-11 Feature request for saving ICs removed dataset temporarily for the cases that a dataset needs remove QC first and inspect bad trials.:microscope: 
+#### To do in new release :microscope: 
+** 2017-10-11 Feature request for saving ICs removed dataset temporarily for the cases that a dataset needs remove QC first and inspect bad trials.**
+** 2017-10-17 add that as EEGLAB plugin. **
 
 ### Breif Manual
 #### Step0.
