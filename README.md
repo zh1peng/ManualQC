@@ -1,7 +1,8 @@
-## Manual QC
+## Manual QC 
 <a href="https://imgur.com/4izPvsv"><img src="https://i.imgur.com/4izPvsv.png" title="source: imgur.com" /></a>
 
 #### Current version: v1.0
+please mention this tools in the paper when used this.
 
 
 
