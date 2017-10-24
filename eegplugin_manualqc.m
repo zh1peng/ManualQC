@@ -1,9 +1,18 @@
-% Please visit zh1peng.github.io/ManualQC for more info
-function manualqc()
+%Author Info
+function eegplugin_manualqc()
+line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
+line2= 'If you have any unsaved works, press Cancel to go back.';
+choice = questdlg2(sprintf([line1,line2]),...
+    'ManualQC Warning',...
+    'Cancel','Continue','Cancel');
+if strcmp(choice,'Cancel')==1
+    return
+end
 evalin('base','clear')
 evalin('base','QC_log={};')
+evalin('base','close all')
 %% Define call back functions
-global filepath filenames n EEG tmprej ui chanlisttmp ic2remove chanliststr qc_log;
+global filepath filenames n EEG tmprej ui chanlisttmp ic2remove chanliststr qc_log just_ic;
 qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Removed ICs'',''Comments'',''Rating'',''Quality Score Before'',''Quality Score After''};'); %don't want remove ' by hand.
 % 0 datadir_cmd
     function datadir_select_cmd(hObject,eventdata)
@@ -34,49 +43,49 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         set(ui.info7,'String','User Rating: Usable')
         set(ui.info6,'String','User Comments: ')
         
-        set(ui.info3,'String','Bad Epochs: ')
+        set(ui.info3,'String','Bad epochs: ')
         set(ui.info4,'String','Bad Channels: ')
         set(ui.info5,'String','ICs to remove: ')
         try
-        EEG = pop_loadset('filename',filenames{n},'filepath',filepath{n});
-        EEG = eeg_checkset( EEG );
-        set(hf,'Name',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)]);
-        %set(ui.info2,'String',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)])
-        % Initial scale in scroll. Very rough estimation of data quality
-        %   From my experience, normally (for 70% data), small figure indicates good quality
-        quality=data_quality(EEG);
-        if quality<=18;
-            meanning='Good';
-        elseif quality<=28;
-            meanning='Fair';
-        else
-            meanning='Seems bad';
-        end
-        % set enable on
-        nbtrials=EEG.trials ;
-        nbchan=EEG.nbchan ;
-        nbics=size(EEG.icaweights,1);
-        datainfo=sprintf('Trial number: %d;   Channel number: %d;   ICs number: %d;   Data Quality: %d (%s)',nbtrials,nbchan,nbics,quality,meanning);
-        set(ui.info2,'String',datainfo)
-        set(ui.scroll,'enable','on');
-        set(ui.badchan,'enable','on');
-        set(ui.ica,'enable','on')
-%         set(ui.update,'enable','on')
-        set(ui.save,'enable','on')
+            EEG = pop_loadset('filename',filenames{n},'filepath',filepath{n});
+            EEG = eeg_checkset( EEG );
+            set(hf,'Name',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)]);
+            %set(ui.info2,'String',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)])
+            % Initial scale in scroll. Very rough estimation of data quality
+            %   From my experience, normally (for 70% data), small figure indicates good quality
+            quality=data_quality(EEG);
+            if quality<=18;
+                meanning='Good';
+            elseif quality<=28;
+                meanning='Fair';
+            else
+                meanning='Seems bad';
+            end
+            % set enable on
+            nbtrials=EEG.trials ;
+            nbchan=EEG.nbchan ;
+            nbics=size(EEG.icaweights,1);
+            datainfo=sprintf('Trial number: %d;   Channel number: %d;   ICs number: %d;   Data Quality: %d (%s)',nbtrials,nbchan,nbics,quality,meanning);
+            set(ui.info2,'String',datainfo)
+            set(ui.scroll,'enable','on');
+            set(ui.badchan,'enable','on');
+            set(ui.ica,'enable','on')
+            %         set(ui.update,'enable','on')
+            set(ui.save,'enable','on')
         catch
             try error_info=[fullfile(filepath{n},filenames{n}),' cannot be loaded'];
                 set(ui.info2,'String',error_info)
+                warndlg2('File cannot be loaded','Manual QC')
             catch
-                warndlg('Index > files you have','Manual QC')
+                warndlg2('Index > files you have','Manual QC')
                 set(ui.info2,'String','Index > files you have')
             end
         end
     end
 % 3 scroll_cmd
     function scroll_cmd(hObject,eventdata)
-        cmd='global EEG tmprej ui; if isempty(TMPREJ), warndlg(''no epoch is selected'',''Manual QC''); clear TMPREJ; else [tmprej, tmprejE] = eegplot2trial(TMPREJ,EEG.pnts, EEG.trials, [1 1 0.783], []); set(ui.info3,''String'',[''Bad Epochs: '', num2str(find(tmprej==1))]); clear tmprejE TMPREJ;end';
+        cmd='global EEG tmprej ui; if isempty(TMPREJ), warndlg2(''no epoch is selected'',''Manual QC''); clear TMPREJ; else [tmprej, tmprejE] = eegplot2trial(TMPREJ,EEG.pnts, EEG.trials, [1 1 0.783], []); set(ui.info3,''String'',[''Bad epochs: '', num2str(find(tmprej==1)), ''  [Sum: '', num2str(sum(tmprej)), '']  ('', num2str((sum(tmprej)./EEG.trials)*100),''%)'']); clear tmprejE TMPREJ;end';
         %          cmd=' if isempty(TMPREJ), warndlg(''no epoch is selected''); else [tmprej, tmprejE] = eegplot2trial(TMPREJ,EEG.pnts, EEG.trials, [1 1 0.783], []); end';
-        
         modified_eegplot( EEG.data, 'srate', EEG.srate, 'title', 'eegplot()', ...
             'limits', [EEG.xmin EEG.xmax]*1000,'eloc_file',EEG.chanlocs,'events',EEG.event,'wincolor' ,[1 1 0.783],'command',cmd,'butlabel','Mark')
         %             bad_trials=
@@ -84,14 +93,14 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
     end
 % 4 badchan_cmd ---to do modify the function
     function badchan_cmd(hObject,eventdata)
-%         chanlisttmp=[];
-%         chanliststr=[];
+        %         chanlisttmp=[];
+        %         chanliststr=[];
         tmpchaninfo = EEG.chanlocs;
         [chanlisttmp chanliststr] = modified_pop_chansel( EEG, { tmpchaninfo.labels } ,'withindex','on');
         if ~isempty(chanlisttmp)
-        set(ui.info4,'String',['Bad Channels: [',chanliststr,' ] (Index: ' num2str(chanlisttmp),' )']);
+            set(ui.info4,'String',['Bad Channels: [',chanliststr,' ] (Index: ' num2str(chanlisttmp),' )']);
         else
-        set(ui.info4,'String','Bad Channels: No bad channels selected');    
+            set(ui.info4,'String','Bad Channels: No bad channels selected');
         end
     end
 % 5 ica_cmd ---to do modify the function
@@ -114,14 +123,21 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
     end
 % 8 save_cmd
     function save_cmd(hObject,eventdata)
-        output_path=get(ui.savedir,'String');
-        prefix=get(ui.prefix,'String');
-        savename=strcat(prefix,filenames(n));
         stars=['*****************************************************'];
-        
+        output_path=get(ui.savedir,'String');
+        if ~exist(output_path) 
+            set(ui.info2,'String','The save dir doesn''t exist.');
+            warndlg2('The save dir doesn''t exist.','Manual QC');
+            disp(stars);
+            disp(['The save dir doesn''t exist.']);
+            disp(stars);
+            return
+        end
+            prefix=get(ui.prefix,'String');
+        savename=strcat(prefix,filenames(n));
         EEG = eeg_checkset( EEG );
         quality_score_before=data_quality(EEG);
-% reject epochs
+        % reject epochs
         if ~isempty(tmprej)
             EEG = pop_rejepoch(EEG,tmprej,0);
             EEG = eeg_checkset( EEG );
@@ -135,7 +151,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             disp(stars);
             set(ui.info3,'String','No trail was removed');
         end
- % interpolated channels    
+        % interpolated channels
         if ~isempty(chanlisttmp)
             for badi=1:length(chanlisttmp)
                 EEG = pop_interp(EEG,chanlisttmp(badi), 'spherical');
@@ -152,7 +168,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             disp(stars);
             set(ui.info4,'String','No bandchannel');
         end
-        
+        if ~isequal(just_ic,1) % in this case, ICs were selected but not removed first, then remove ICs if any.
         if  ~isempty(ic2remove)
             EEG=pop_subcomp(EEG,ic2remove,0);
             EEG = eeg_checkset( EEG );
@@ -166,6 +182,12 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             disp(stars);
             set(ui.info5,'String','No component was selected');
         end
+        else
+            disp(stars);
+            disp('ICs were removed before');
+            disp(stars);
+        end
+            
         
         %calculate data quality after QC
         quality_score_after=data_quality(EEG);
@@ -173,7 +195,13 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         tmp_name=filenames{n};
         tmp_comments=get(ui.info6,'String');
         tmp_rating=get(ui.info7,'String');
+        
+        if ~isequal(just_ic,1)
         tmp_info={tmp_name(1:end-4),num2str(find(tmprej==1)),chanliststr,num2str(ic2remove),tmp_comments(16:end),tmp_rating(14:end),num2str(quality_score_before),num2str(quality_score_after)};
+        else
+         tmp_info={tmp_name(1:end-4),num2str(find(tmprej==1)),chanliststr,[num2str(ic2remove),'(ICs were removed frist)'],tmp_comments(16:end),tmp_rating(14:end),num2str(quality_score_before),num2str(quality_score_after)};    
+        end
+        
         %save info in EEG structure
         EEG.comments = pop_comments(EEG.comments,'','QC info:',1);
         EEG.comments = pop_comments(EEG.comments,'','Trials removed:',1);
@@ -188,55 +216,54 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         EEG.comments = pop_comments(EEG.comments,'',tmp_info{7},1);
         EEG.comments = pop_comments(EEG.comments,'','quality after QC:',1);
         EEG.comments = pop_comments(EEG.comments,'',tmp_info{8},1);
-
+        
         qc_log(n+1,1:8)=deal(tmp_info);
-        if exist(output_path)
-        EEG = pop_saveset( EEG, 'filename',savename{n},'filepath',output_path);
-        %save tmp results- 
-        qc_info_temp_bak=['qc_info_bak_on_',datestr(now,'HH.MM'),'.xls'];
-         xlswrite(fullfile(output_path,qc_info_temp_bak),qc_log);
+        
+            EEG = pop_saveset( EEG, 'filename',savename{n},'filepath',output_path);
+            %save tmp results-
+            qc_info_temp_bak=['qc_info_bak_on_',datestr(now,'HH.MM'),'.xls'];
+            xlswrite(fullfile(output_path,qc_info_temp_bak),qc_log);
             
+            
+            assignin('base','QC_log',qc_log);
+            set(ui.info2, 'String','file saved');
+            set(ui.scroll,'enable','off');
+            set(ui.badchan,'enable','off');
+            set(ui.ica,'enable','off')
+            set(ui.save,'enable','off')
+            %         set(ui.update,'enable','off')
+            %         set(ui.info7,'String','User Rating: Usable')
+            %         set(ui.info6,'String','User Comments: ')
+            %         set(ui.info2,'String','Dataset: ')
+            %         set(ui.info3,'String','Bad epochs: ')
+            %         set(ui.info4,'String','Bad Channels: ')
+            %         set(ui.info5,'String','ICs to remove: ')
+            EEG=[];
+            ic2remove=[];
+            tmprej=[];
+            chanlisttmp=[];
+            just_ic=[];
+            chanliststr=[];
+            tmp_info={};
+            if n+1<=length(filenames)
+                set(ui.idxbox, 'String',num2str(n+1));
+            else
+                set(ui.idxbox, 'String','end');
+                
+                set(ui.info7,'String','')
+                set(ui.info6,'String','')
+                set(ui.info3,'String','')
+                set(ui.info4,'String','')
+                set(ui.info5,'String','')
+                warndlg2('No more files.','ManualQC')
+                set(ui.info2, 'String','No more files.');
+                qc_info_final=['final_qc_info_on_',datestr(now,'HH.MM'),'.xls'];
+                xlswrite(fullfile(output_path,qc_info_final),qc_log);
+            end
         
-        
-        assignin('base','QC_log',qc_log);
-        set(ui.info2, 'String','file saved');
-        set(ui.scroll,'enable','off');
-        set(ui.badchan,'enable','off');
-        set(ui.ica,'enable','off')
-        set(ui.save,'enable','off')
-%         set(ui.update,'enable','off')
-%         set(ui.info7,'String','User Rating: Usable')
-%         set(ui.info6,'String','User Comments: ')
-%         set(ui.info2,'String','Dataset: ')
-%         set(ui.info3,'String','Bad Epochs: ')
-%         set(ui.info4,'String','Bad Channels: ')
-%         set(ui.info5,'String','ICs to remove: ')
-        EEG=[];
-        ic2remove=[];
-        tmprej=[];
-        chanlisttmp=[];
-        tmp_info={};
-        if n+1<=length(filenames)
-            set(ui.idxbox, 'String',num2str(n+1));
-        else
-            set(ui.idxbox, 'String','end');
-           
-            set(ui.info7,'String','')
-            set(ui.info6,'String','')
-            set(ui.info3,'String','')
-            set(ui.info4,'String','')
-            set(ui.info5,'String','')
-            warndlg('No more files.','Manual QC')
-            set(ui.info2, 'String','No more files.');
-
-        end
-        else
-            set(ui.info2,'String','The save dir doesn''t exist.');
-             warndlg('The save dir doesn''t exist.','Manual QC')
-        end        
-end
+    end
 % 9 data_quality Initial scale in scroll. Very rough estimation of data quality
-%   From my experience, normally (for 70% data), small figure indicates good quality
+%   From my experience, normally (at least for 70% data), small number indicates good quality
     function quality_index=data_quality(EEG)
         maxindex = min(1000, EEG.pnts*EEG.trials);
         stds = std(EEG.data(:,1:maxindex),[],2);
@@ -253,8 +280,40 @@ end
         end
         quality_index=spacing;
     end
+%10 radio selection response function
     function bselection(source,event)
-       set(ui.info7,'String',['User Rating: ', event.NewValue.String]);
+        set(ui.info7,'String',['User Rating: ', event.NewValue.String]);
+    end
+
+%11. New feature: remove bad ics first
+%only epochs and badchannels are empty,this button will be enabled.
+    function just_remove(hObject,eventdata)
+line_1='This button assumes you want to remove bad ICs first and then work on bad epochs/channels.\n\n';
+line_2= 'Any bad epochs/channels selected for this dataset will be cleared.\n ';
+line_3='ICs button will also be disabled, which means you cannot reject/inspect ICs.\n\n';
+line_4='press Cancel to go back.';
+choice2 = questdlg2(sprintf([line_1,line_2,line_3,line_4]),...
+    'ManualQC Warning',...
+    'Cancel','Continue','Cancel');
+if strcmp(choice2,'Cancel')==1
+    return
+end
+stars=['*****************************************************'];
+            EEG=pop_subcomp(EEG,ic2remove,0);
+            EEG = eeg_checkset( EEG );
+            disp(stars);
+            disp(['Removed components: ',num2str(ic2remove)]);
+            disp(stars);
+            set(ui.info5,'String',[ 'Removed ICs: ' num2str(ic2remove), '. You are working on ICs removed dataset.']);
+            %only allow to use once for one dataset.
+            set(ui.justremove,'enable','off'); 
+            set(ui.ica,'enable','off');
+            just_ic=1; % for save button: ic have been removed but save fuction; if just_ic==1, only save info
+            set(ui.info3,'String','Bad epochs: ')
+            tmprej=[];
+            set(ui.info4,'String','Bad Channels: ')
+            chanlisttmp=[];
+            chanliststr=[];
     end
 %% GUI settings
 bgblue=[0.66    0.76   1.00];
@@ -264,7 +323,7 @@ hf = figure('Units', 'Normalized', ...
     'Position', [0.32,0.17,0.4,0.7], ...
     'Menu', 'none', ...
     'Color',bgblue,...
-    'Name','ManualQC v.1',...
+    'Name','ManualQC v1.1',...
     'NumberTitle', 'off',...
     'CloseRequestFcn', 'delete(gcf);disp(''Thank you for using Manual QC.'')');
 %Line1-Title
@@ -280,7 +339,7 @@ ui.tittle1=uicontrol('Parent', hf,'Units', 'Normalized', ...
 ui.tittle2=uicontrol('Parent', hf, 'Units', 'Normalized', ...
     'Position', [0.55 0.9 0.19 0.07], ...
     'Style', 'text', ...
-    'String', 'v1.0', ...
+    'String', 'v1.1', ...
     'BackgroundColor',bgblue,...
     'ForegroundColor',txtblue,...
     'HorizontalAlignment','left',...
@@ -337,7 +396,7 @@ ui.load=uicontrol('Parent', hf, 'Units', 'Normalized', ...
 ui.scroll=uicontrol('Parent', hf, 'Units', 'Normalized', ...
     'Position', [0.45 0.78 0.15 0.06], ...
     'Style', 'pushbutton', ...
-    'String', 'Epochs', ...
+    'String', 'epochs', ...
     'BackgroundColor',btnblue,...
     'ForegroundColor',txtblue,...
     'FontSize',14,...
@@ -396,11 +455,11 @@ ui.add=uicontrol('Parent', hf, 'Units', 'Normalized', ...
     'FontSize',12,...
     'callback',@add_cmd);
 
-% Line5 Information panel
+% Line5 Information pannel
 ui.info1=uicontrol('Parent', hf,'Units', 'Normalized', ...
     'Position', [0.05 0.61 0.9 0.06], ...
     'Style', 'text', ...
-    'String', 'Information Panel', ...
+    'String', 'Information Pannel', ...
     'BackgroundColor',btnblue,...
     'ForegroundColor',txtblue,...
     'FontSize',18);
@@ -415,7 +474,7 @@ ui.info2=uicontrol('Parent', hf,'Units', 'Normalized', ...
 ui.info3=uicontrol('Parent', hf,'Units', 'Normalized', ...
     'Position', [0.05 0.405 0.9 0.15], ...
     'Style', 'text', ...
-    'String', 'Bad Epochs: ', ...
+    'String', 'Bad epochs: ', ...
     'BackgroundColor',btnblue,...
     'ForegroundColor',txtblue,...
     'FontSize',12,...
@@ -476,7 +535,7 @@ ui.savedir_select=uicontrol('Parent', hf,'Units', 'Normalized', ...
     'FontSize',12,...
     'Callback',@savedir_select_cmd);
 ui.save=uicontrol('Parent', hf,'Units', 'Normalized', ...
-    'Position', [0.05 0.03 0.9 0.12], ...
+    'Position', [0.5 0.03 0.45 0.12], ...
     'Style', 'pushbutton', ...
     'String', 'Save', ...
     'BackgroundColor',btnblue,...
@@ -484,14 +543,14 @@ ui.save=uicontrol('Parent', hf,'Units', 'Normalized', ...
     'FontSize',20,...
     'FontWeight', 'bold',...
     'callback',@save_cmd);
-% ui.update=uicontrol('Parent', hf,'Units', 'Normalized', ...
-%     'Position', [0.05 0.03 0.45 0.12], ...
-%     'Style', 'pushbutton', ...
-%     'String', 'Update QC info', ...
-%     'BackgroundColor',btnblue,...
-%     'ForegroundColor',txtblue,...
-%     'FontSize',20,...
-%     'FontWeight', 'bold');
+ui.justremove=uicontrol('Parent', hf,'Units', 'Normalized', ...
+    'Position', [0.05 0.03 0.43 0.12], ...
+    'Style', 'pushbutton', ...
+    'String', 'Remove Bad ICs First', ...
+    'BackgroundColor',btnblue,...
+    'ForegroundColor',txtblue,...
+    'FontSize',20,...
+    'Callback',@just_remove);
 
 % Create and display the text label
 % 1.how to set color
@@ -516,6 +575,7 @@ set(ui.ica,'enable','off')
 set(ui.save,'enable','off')
 % set(ui.update,'enable','off')
 set(ui.load,'enable','off')
+set(ui.justremove,'enable','off')
 end
 %% ====================================================================================
 %               Functions (some are customized functions from eeglab)
@@ -524,7 +584,7 @@ end
 % 1.removed 2 buttons [Norm; Stack]
 % 2.removed ['Accept and close'] in 'Figure' menu
 % 3.changed size of the window. [DEFAULT_AXES_POSITION]
-% 4.set g.spacing as 72 [This is used in our lab]
+% 4.set g.spacing as 72 [Normally 68-75 is used in our lab]
 % 5.removed ['Help'] menu
 % Note: eegplot ect functions from eeglab are needed in path.
 % eeglab14_0_0b/functions/*
@@ -2560,42 +2620,42 @@ drawnow;
 % run the following code until fig get the 'userdata' --zhipeng notes
 waitfor( fig, 'userdata');
 try
-if strcmp(get(fig, 'userdata'), 'clear') | strcmp(get(fig, 'userdata'), 'ok')
-    try,
-        vals = get(h, 'value');
-        strval = '';
-        if iscell(g.liststring)
-            for index = vals
-                strval = [ strval ' ' g.liststring{index} ];
+    if strcmp(get(fig, 'userdata'), 'clear') | strcmp(get(fig, 'userdata'), 'ok')
+        try,
+            vals = get(h, 'value');
+            strval = '';
+            if iscell(g.liststring)
+                for index = vals
+                    strval = [ strval ' ' g.liststring{index} ];
+                end;
+            else
+                for index = vals
+                    strval = [ strval ' ' g.liststring(index,:) ];
+                end;
             end;
-        else
-            for index = vals
-                strval = [ strval ' ' g.liststring(index,:) ];
+            strval = strval(2:end);
+            if strcmp(get(fig, 'userdata'), 'clear')
+                okornot = 0;
+            else
+                okornot = 1;
             end;
+            close(fig);
+            drawnow;
         end;
-        strval = strval(2:end);
-        if strcmp(get(fig, 'userdata'), 'clear')
-            okornot = 0;
-        else
-            okornot = 1;
-        end;
-        close(fig);
-        drawnow;
-    end;
-else
-    
-    refresh(fig)
-    h = findobj( 'parent', fig, 'tag', 'listboxvals');
-    try,
-        vals = get(h, 'value');
-        for idx=1:length(vals)
-            pop_prop(EEG,1,vals(idx),NaN,{})
-        end
-        close(fig); %No idea how to allow it to click pushbutton multiple times.
-        drawnow;
+    else
         
-    end;
-end
+        refresh(fig)
+        h = findobj( 'parent', fig, 'tag', 'listboxvals');
+        try,
+            vals = get(h, 'value');
+            for idx=1:length(vals)
+                pop_prop(EEG,1,vals(idx),NaN,{})
+            end
+            close(fig); %No idea how to allow it to click pushbutton multiple times.
+            drawnow;
+            
+        end;
+    end
 end
 end
 
@@ -2885,22 +2945,22 @@ if ~exist('fig','var')
         'Position',[70 -10  15 sizewy*0.25].*s+q, 'callback',clear_cmd);
     
     
-    ok_cmd = 'global EEG ui ic2remove;ic2remove=find(EEG.reject.gcompreject==1); set(ui.info5,''String'',[''ICs to remove : '', num2str(find(EEG.reject.gcompreject==1))]);close(gcf);';
+    ok_cmd = 'global EEG ui ic2remove;ic2remove=find(EEG.reject.gcompreject==1); if isempty(ic2remove); warndlg2(''No IC is selected'',''ManaulQC'');  else set(ui.info5,''String'',[''ICs to remove : '', num2str(find(EEG.reject.gcompreject==1))]);set(ui.justremove,''enable'',''on'');end;close(gcf);';
     hh = uicontrol(gcf, 'Style', 'pushbutton', 'string', 'OK', 'Units','Normalized', 'backgroundcolor', GUIBUTTONCOLOR, ...
         'Position',[90 -10  15 sizewy*0.25].*s+q, 'callback',  ok_cmd);
     % sprintf(['eeg_global; if %d pop_rejepoch(%d, %d, find(EEG.reject.sigreject > 0), EEG.reject.elecreject, 0, 1);' ...
     %		' end; pop_compproj(%d,%d,1); close(gcf); eeg_retrieve(%d); eeg_updatemenu; '], rejtrials, set_in, set_out, fastif(rejtrials, set_out, set_in), set_out, set_in));
-
+    
 end;
 end
 
 %% ==========================search using regexp======================================
 function [paths, names] = filesearch_regexp(startDir,expression,norecurse)
-    if (~exist('norecurse','var') || isempty(norecurse))
-        norecurse=0;
-    end
-    [paths names] = dir_search(startDir,expression,norecurse);
-    
+if (~exist('norecurse','var') || isempty(norecurse))
+    norecurse=0;
+end
+[paths names] = dir_search(startDir,expression,norecurse);
+
     function [paths names] = dir_search(currDir,expression,norecurse)
         if nargin < 2
             fprintf('Usage: [paths names] = dirsearch(currDir, searchstring)\n');
@@ -2913,19 +2973,19 @@ function [paths, names] = filesearch_regexp(startDir,expression,norecurse)
         paths = {};
         names = {};
         list_currDir = dir(currDir);
-
+        
         for u = 1:length(list_currDir)
             if (list_currDir(u).isdir==1 && strcmp(list_currDir(u).name,'.')~=1 && strcmp(list_currDir(u).name,'..')~=1 && norecurse==0)
                 [temppaths tempnames] = dir_search(sprintf('%s%s%s',currDir,filesep,list_currDir(u).name),expression);
                 paths = {paths{:} temppaths{:}};
                 names = {names{:} tempnames{:}};
             elseif (length(list_currDir(u).name) > 4)
-                    if isempty(regexpi(list_currDir(u).name, expression))==0
-                        paths = {paths{:} currDir};
-                        names = {names{:} list_currDir(u).name};
-                    end
+                if isempty(regexpi(list_currDir(u).name, expression))==0
+                    paths = {paths{:} currDir};
+                    names = {names{:} list_currDir(u).name};
+                end
             end
         end
-
-	end
+        
+    end
 end
