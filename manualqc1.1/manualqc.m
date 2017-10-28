@@ -1,8 +1,11 @@
 % manualqc provides GUI for doing quality control (QC)  manually on the EEG data. 
-% Author: Zhipeng Cao 
-% If you find any bugs,please contact me via github. 
+% Author: Zhipeng Cao caoz@tcd.ie
+% Thanks to Hanni [Post-doc in WhelanLab@TCD] for giving tests and
+% helpful feedbacks.
+%
+% If you find any bugs/have good suggestions,please contact me. 
 % Welcome to fork/star that on my github: https://github.com/zh1peng/ManualQC
-% Please mention cite this tool [repository] if you use it for your paper.
+% Please mention/ cite this tool [repository] if you use it for your paper.
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -26,10 +29,17 @@
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %v1.0 initial version
-%v1.1 mainly added in a new button which allows users to do ICs remeval first
-%        added to eegplugin
-%        fixed the save bug
-%        automatically calculate how many trials are marked as bad trials
+%v1.1 * mainly added in a new button which allows users to do ICs remeval first
+%          This point is suggested by Hanni [Post-doc in WhelanLab@TCD]
+%       * added to eegplugin
+%       * fixed the save bug
+%       * automatically calculate how many trials are marked as bad trials
+%v1.1.1 (10.28)
+%          *  fixed xlswrite on linux/mac error
+%          * added button to plot ICs activition giving info on the ICs should
+%            be removed or not.
+%            This point is suggested by Hanni [Post-doc in WhelanLab@TCD]
+%          * display search results.
 
 function manualqc()
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
@@ -58,13 +68,19 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         data_path=get(ui.datadir,'String');
         regexp=get(ui.regexp,'String');
         [filepath, filenames]=filesearch_regexp(data_path,regexp);
-        if length(filenames)==0
+        if isempty(filenames)
             set(ui.idxbox, 'String','NA');
             set(ui.info2,'String','Cannot find any file with the regexp, try it again')
         else
             set(ui.idxbox, 'String','1');
             set(ui.info2,'String',sprintf('Find %d in the path',length(filenames)));
             set(ui.load,'enable','on')
+            file2display=sprintf(['Following files in the search dir match your regexp:\n',...
+                '(Check if they are exact set files you want to work on)\n','\n'])
+            for file_idx=1:length(filenames)
+                file2display=sprintf([file2display,sprintf('%s\n',filenames{file_idx})])
+            end
+            warndlg2(file2display,'ManualQC: Search results')   
         end
     end
 % 2 load_cmd
@@ -253,8 +269,8 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         
             EEG = pop_saveset( EEG, 'filename',savename{n},'filepath',output_path);
             %save tmp results-
-            qc_info_temp_bak=['qc_info_bak_on_',datestr(now,'HH.MM'),'.xls'];
-            xlswrite(fullfile(output_path,qc_info_temp_bak),qc_log);
+            qc_info_temp_bak=['qc_info_bak_on_',datestr(now,'HH.MM'),'.csv'];
+            csvwrite(fullfile(output_path,qc_info_temp_bak),qc_log);
             
             
             assignin('base','QC_log',qc_log);
@@ -289,8 +305,8 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
                 set(ui.info5,'String','')
                 warndlg2('No more files.','ManualQC')
                 set(ui.info2, 'String','No more files.');
-                qc_info_final=['final_qc_info_on_',datestr(now,'HH.MM'),'.xls'];
-                xlswrite(fullfile(output_path,qc_info_final),qc_log);
+                qc_info_final=['final_qc_info_on_',datestr(now,'HH.MM'),'.csv'];
+                csvwrite(fullfile(output_path,qc_info_final),qc_log);
             end
         
     end
@@ -355,7 +371,7 @@ hf = figure('Units', 'Normalized', ...
     'Position', [0.32,0.17,0.4,0.7], ...
     'Menu', 'none', ...
     'Color',bgblue,...
-    'Name','ManualQC v1.1',...
+    'Name','ManualQC v1.1.1',...
     'NumberTitle', 'off',...
     'CloseRequestFcn', 'delete(gcf);disp(''Thank you for using Manual QC.'')');
 %Line1-Title
@@ -371,7 +387,7 @@ ui.tittle1=uicontrol('Parent', hf,'Units', 'Normalized', ...
 ui.tittle2=uicontrol('Parent', hf, 'Units', 'Normalized', ...
     'Position', [0.55 0.9 0.19 0.07], ...
     'Style', 'text', ...
-    'String', 'v1.1', ...
+    'String', 'v1.1.1', ...
     'BackgroundColor',bgblue,...
     'ForegroundColor',txtblue,...
     'HorizontalAlignment','left',...
@@ -2967,19 +2983,25 @@ if ~exist('fig','var')
     cmd8='clear component_keep compproj h_tmp3 tracing components h_ics';
     cmp_average_cmd=[cmd_off2, cmd1,cmd2,cmd3,cmd4,cmd6,cmd7,cmd8];
     hh = uicontrol(gcf, 'Style', 'pushbutton', 'string', 'Test removal (averaged ERPs)', 'Units','Normalized', 'backgroundcolor', GUIBUTTONCOLOR, ...
-        'Position',[50 -10  15 sizewy*0.25].*s+q, 'callback', cmp_average_cmd,'tag','test_btn2','enable','off');
+        'Position',[45 -10  15 sizewy*0.25].*s+q, 'callback', cmp_average_cmd,'tag','test_btn2','enable','off');
     
+    cmd_ic_activiation1='global EEG; tmpdata = eeg_getdatact(EEG, ''component'', [1:size(EEG.icaweights,1)]);'
+	cmd_ic_activiation2='eegplot( tmpdata, ''srate'', EEG.srate, ''title'', ''Scroll component activities -- eegplot()'',''limits'', [EEG.xmin EEG.xmax]*1000);'
+    cmd_ic_activiation=[cmd_ic_activiation1,cmd_ic_activiation2];  
+    hh = uicontrol(gcf, 'Style', 'pushbutton', 'string', 'Scroll ICs activiation', 'Units','Normalized', 'backgroundcolor', GUIBUTTONCOLOR, ...
+    'Position',[62.5 -10  15 sizewy*0.25].*s+q, 'callback',cmd_ic_activiation);
+
     clear_cmd1=' global EEG ui; ic2remove=find(EEG.reject.gcompreject==1);EEG.reject.gcompreject(ic2remove)=0;set(ui.info5,''String'',''ICs to remove : all selected ICs were cleared.'');close(gcf);';
     clear_cmd2='cb = get(ui.ica, ''callback'');cb(ui.ica,[])';
     clear_cmd=[clear_cmd1,clear_cmd2];
     
     hh = uicontrol(gcf, 'Style', 'pushbutton', 'string', 'Clear all selections', 'Units','Normalized', 'backgroundcolor', GUIBUTTONCOLOR, ...
-        'Position',[70 -10  15 sizewy*0.25].*s+q, 'callback',clear_cmd);
+        'Position',[80 -10  15 sizewy*0.25].*s+q, 'callback',clear_cmd);
     
     
     ok_cmd = 'global EEG ui ic2remove;ic2remove=find(EEG.reject.gcompreject==1); if isempty(ic2remove); warndlg2(''No IC is selected'',''ManaulQC'');  else set(ui.info5,''String'',[''ICs to remove : '', num2str(find(EEG.reject.gcompreject==1))]);set(ui.justremove,''enable'',''on'');end;close(gcf);';
     hh = uicontrol(gcf, 'Style', 'pushbutton', 'string', 'OK', 'Units','Normalized', 'backgroundcolor', GUIBUTTONCOLOR, ...
-        'Position',[90 -10  15 sizewy*0.25].*s+q, 'callback',  ok_cmd);
+        'Position',[95 -10  15 sizewy*0.25].*s+q, 'callback',  ok_cmd);
     % sprintf(['eeg_global; if %d pop_rejepoch(%d, %d, find(EEG.reject.sigreject > 0), EEG.reject.elecreject, 0, 1);' ...
     %		' end; pop_compproj(%d,%d,1); close(gcf); eeg_retrieve(%d); eeg_updatemenu; '], rejtrials, set_in, set_out, fastif(rejtrials, set_out, set_in), set_out, set_in));
     
