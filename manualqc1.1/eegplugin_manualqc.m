@@ -28,12 +28,6 @@
 %
 % %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%v1.0 initial version
-%v1.1 mainly added in a new button which allows users to do ICs remeval first
-%        added to eegplugin
-%        fixed the save bug
-%        automatically calculate how many trials are marked as bad trials
-
 
 function eegplugin_manualqc( fig, try_strings, catch_strings)
 toolsmenu = findobj(fig, 'tag', 'tools');
