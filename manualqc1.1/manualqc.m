@@ -1,7 +1,6 @@
 % manualqc provides GUI for doing quality control (QC)  manually on the EEG data. 
 % Author: Zhipeng Cao caoz@tcd.ie
-% Thanks to Hanni [Post-doc in WhelanLab@TCD] for giving tests and
-% helpful feedbacks.
+% Thanks to Hanni  for giving tests and helpful feedbacks.
 %
 % If you find any bugs/have good suggestions,please contact me. 
 % Welcome to fork/star that on my github: https://github.com/zh1peng/ManualQC
@@ -40,8 +39,10 @@
 %            be removed or not.
 %            This point is suggested by Hanni [Post-doc in WhelanLab@TCD]
 %          * display search results.
-
+%v1.1.2 (11.11) 
+%          * check version
 function manualqc()
+gui_version='v1.1.2';
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
 line2= 'If you have any unsaved works, press Cancel to go back.';
 choice = questdlg2(sprintf([line1,line2]),...
@@ -50,6 +51,32 @@ choice = questdlg2(sprintf([line1,line2]),...
 if strcmp(choice,'Cancel')==1
     return
 end
+
+
+%% check version
+disp('Checking GitHub repository. Please be patient.')
+url  = 'https://github.com/zh1peng/ManualQC/blob/master/README.md';
+try
+    str = webread(url);
+catch
+    disp('No internet connection');
+end
+    [idx1, idx2] = regexp(str, 'Current version: '); 
+    gitversion = str(idx2+1:idx2+6);
+    
+    if strcmp(gui_version, gitversion)
+        disp('You have the latest version.')
+        
+    else
+%         guidir = fileparts(mfilename('fullpath'));
+%         disp(guidir)
+%         url='';
+%         disp('Downloading...')
+%         unzip(url, fileparts(guidir));
+%         disp('download finished')
+        warndlg2('A new version is available on github','ManualQC: update')
+    end
+        
 evalin('base','clear')
 evalin('base','QC_log={};')
 evalin('base','close all')
@@ -371,7 +398,7 @@ hf = figure('Units', 'Normalized', ...
     'Position', [0.32,0.17,0.4,0.7], ...
     'Menu', 'none', ...
     'Color',bgblue,...
-    'Name','ManualQC v1.1.1',...
+    'Name',['ManualQC ',gui_version],...
     'NumberTitle', 'off',...
     'CloseRequestFcn', 'delete(gcf);disp(''Thank you for using Manual QC.'')');
 %Line1-Title
@@ -387,7 +414,7 @@ ui.tittle1=uicontrol('Parent', hf,'Units', 'Normalized', ...
 ui.tittle2=uicontrol('Parent', hf, 'Units', 'Normalized', ...
     'Position', [0.55 0.9 0.19 0.07], ...
     'Style', 'text', ...
-    'String', 'v1.1.1', ...
+    'String', gui_version, ...
     'BackgroundColor',bgblue,...
     'ForegroundColor',txtblue,...
     'HorizontalAlignment','left',...
