@@ -1,7 +1,7 @@
 ## Manual QC
 <a href="https://imgur.com/XYa5qyJ"><img src="https://i.imgur.com/XYa5qyJ.png" title="source: imgur.com" /></a>
 
-#### Current version: v1.1.1
+#### Current version: v1.1.2
 Please cite this tools if you use it for your paper
 
 
@@ -33,9 +33,13 @@ Realized that this could be useful by others who need to do manual QC on eegdata
 
 2017-10-28 ManualQC v1.1.1:
 *  fixed xlswrite on linux/mac error
-* added button to plot ICs activition giving info on the ICs should be removed or not.
- * display search results.
+*  added button to plot ICs activition giving info on the ICs should be removed or not.
+ *  display search results.
 
+
+2017-11-11 ManualQC v1.1.2:
+
+* check version when initiate the gui
 
 
 
