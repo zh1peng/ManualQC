@@ -41,6 +41,8 @@
 %          * display search results.
 %v1.1.2 (11.11) 
 %          * check version
+%          * add cell2csv  11.13
+%          * fix save error (Orz)
 function manualqc()
 gui_version='v1.1.2';
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
@@ -103,7 +105,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             set(ui.info2,'String',sprintf('Find %d in the path',length(filenames)));
             set(ui.load,'enable','on')
             file2display=sprintf(['Following files in the search dir match your regexp:\n',...
-                '(Check if they are exact set files you want to work on)\n','\n'])
+                '(Check if they are exact set files you want to work on)\n','\n']);
             for file_idx=1:length(filenames)
                 file2display=sprintf([file2display,sprintf('%s\n',filenames{file_idx})])
             end
@@ -209,7 +211,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             return
         end
             prefix=get(ui.prefix,'String');
-        savename=strcat(prefix,filenames(n));
+        savename=strcat(prefix,filenames{n});
         EEG = eeg_checkset( EEG );
         quality_score_before=data_quality(EEG);
         % reject epochs
@@ -294,10 +296,10 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         
         qc_log(n+1,1:8)=deal(tmp_info);
         
-            EEG = pop_saveset( EEG, 'filename',savename{n},'filepath',output_path);
+            EEG = pop_saveset( EEG, 'filename',savename,'filepath',output_path);
             %save tmp results-
             qc_info_temp_bak=['qc_info_bak_on_',datestr(now,'HH.MM'),'.csv'];
-            csvwrite(fullfile(output_path,qc_info_temp_bak),qc_log);
+            cell2csv(fullfile(output_path,qc_info_temp_bak),qc_log);
             
             
             assignin('base','QC_log',qc_log);
@@ -333,7 +335,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
                 warndlg2('No more files.','ManualQC')
                 set(ui.info2, 'String','No more files.');
                 qc_info_final=['final_qc_info_on_',datestr(now,'HH.MM'),'.csv'];
-                csvwrite(fullfile(output_path,qc_info_final),qc_log);
+                cell2csv(fullfile(output_path,qc_info_final),qc_log);
             end
         
     end
@@ -3069,4 +3071,91 @@ end
         end
         
     end
+end
+
+%%=========================cell2csv===================================================
+function cell2csv(fileName, cellArray, separator, excelYear, decimal)
+% Writes cell array content into a *.csv file.
+% 
+% CELL2CSV(fileName, cellArray, separator, excelYear, decimal)
+%
+% fileName     = Name of the file to save. [ i.e. 'text.csv' ]
+% cellArray    = Name of the Cell Array where the data is in
+% separator    = sign separating the values (default = ';')
+% excelYear    = depending on the Excel version, the cells are put into
+%                quotes before they are written to the file. The separator
+%                is set to semicolon (;)
+% decimal      = defines the decimal separator (default = '.')
+%
+%         by Sylvain Fiedler, KA, 2004
+% updated by Sylvain Fiedler, Metz, 06
+% fixed the logical-bug, Kaiserslautern, 06/2008, S.Fiedler
+% added the choice of decimal separator, 11/2010, S.Fiedler
+
+%% Checking fr optional Variables
+if ~exist('separator', 'var')
+    separator = ',';
+end
+
+if ~exist('excelYear', 'var')
+    excelYear = 1997;
+end
+
+if ~exist('decimal', 'var')
+    decimal = '.';
+end
+
+%% Setting separator for newer excelYears
+if excelYear > 2000
+    separator = ';';
+end
+
+%% Write file
+datei = fopen(fileName, 'w');
+
+for z=1:size(cellArray, 1)
+    for s=1:size(cellArray, 2)
+        
+        var = eval(['cellArray{z,s}']);
+        % If zero, then empty cell
+        if size(var, 1) == 0
+            var = '';
+        end
+        % If numeric -> String
+        if isnumeric(var)
+            var = num2str(var);
+            % Conversion of decimal separator (4 Europe & South America)
+            % http://commons.wikimedia.org/wiki/File:DecimalSeparator.svg
+            if decimal ~= '.'
+                var = strrep(var, '.', decimal);
+            end
+        end
+        % If logical -> 'true' or 'false'
+        if islogical(var)
+            if var == 1
+                var = 'TRUE';
+            else
+                var = 'FALSE';
+            end
+        end
+        % If newer version of Excel -> Quotes 4 Strings
+        if excelYear > 2000
+            var = ['"' var '"'];
+        end
+        
+        % OUTPUT value
+        fprintf(datei, '%s', var);
+        
+        % OUTPUT separator
+        if s ~= size(cellArray, 2)
+            fprintf(datei, separator);
+        end
+    end
+    if z ~= size(cellArray, 1) % prevent a empty line at EOF
+        % OUTPUT newline
+        fprintf(datei, '\n');
+    end
+end
+% Closing file
+fclose(datei);
 end
