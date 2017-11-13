@@ -41,6 +41,10 @@ Realized that this could be useful by others who need to do manual QC on eegdata
 
 * check version when initiate the gui
 
+2017-11-13 
+* add cell2csv  11.13
+* fix save error (Orz)
+
 
 
 ## Breif Manual
@@ -57,7 +61,7 @@ Use it as eeglab plugin:
 
 ### Step1. Search datasets using a regular expression.
 1. Enter a regular expression. One example is shown in the info panel. Type doc regexp to see more examples.
-  [Our lab is using `^Final\w*.set` as ‘Final�?is added as prefix on pre-processed data]
+  [Our lab is using `^Final\w*.set` as ‘Final��?is added as prefix on pre-processed data]
 2. Paste or select data directory.
 3. Click search.
 
