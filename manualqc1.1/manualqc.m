@@ -43,13 +43,21 @@
 %          * check version
 %          * add cell2csv  11.13
 %          * fix save error (Orz)
+%v1.1.3  (11.27)
+%          * tiny bug fixed; couldn't find functions from eeglab
+%          * disable 'Load' button after click
+%          * disable 'remove IC first' button after click save button
 function manualqc()
-gui_version='v1.1.2';
+gui_version='v1.1.3';
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
 line2= 'If you have any unsaved works, press Cancel to go back.';
+try
 choice = questdlg2(sprintf([line1,line2]),...
     'ManualQC Warning',...
     'Cancel','Continue','Cancel');
+catch
+    warndlg('add with subfolders: eeglab_version/functions or run this gui from eeglab plugin','manualqc');
+end
 if strcmp(choice,'Cancel')==1
     return
 end
@@ -76,7 +84,7 @@ end
 %         disp('Downloading...')
 %         unzip(url, fileparts(guidir));
 %         disp('download finished')
-        warndlg2('A new version is available on github','ManualQC: update')
+        disp([gitversion,' is available on github'])
     end
         
 evalin('base','clear')
@@ -149,6 +157,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             set(ui.ica,'enable','on')
             %         set(ui.update,'enable','on')
             set(ui.save,'enable','on')
+            set(ui.load,'enable','off')
         catch
             try error_info=[fullfile(filepath{n},filenames{n}),' cannot be loaded'];
                 set(ui.info2,'String',error_info)
@@ -308,6 +317,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             set(ui.badchan,'enable','off');
             set(ui.ica,'enable','off')
             set(ui.save,'enable','off')
+            set(ui.justremove,'enable','off'); 
             %         set(ui.update,'enable','off')
             %         set(ui.info7,'String','User Rating: Usable')
             %         set(ui.info6,'String','User Comments: ')
