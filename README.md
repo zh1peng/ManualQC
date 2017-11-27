@@ -41,11 +41,14 @@ Realized that this could be useful by others who need to do manual QC on eegdata
 
 * check version when initiate the gui
 
-2017-11-13 
+2017-11-13
 * add cell2csv  11.13
 * fix save error (Orz)
 
-
+2017-11-27 ManualQC v1.1.3:
+ * tiny bug fixed; couldn't find functions from eeglab
+ * disable 'Load' button after click
+ * disable 'remove IC first' button after click save button
 
 ## Breif Manual
 ### Step0.
