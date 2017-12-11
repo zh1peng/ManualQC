@@ -47,6 +47,12 @@
 %          * tiny bug fixed; couldn't find functions from eeglab
 %          * disable 'Load' button after click
 %          * disable 'remove IC first' button after click save button
+%12.11
+%           * fix checking version issue 
+%           * change order of IC remove. remove IC first. 
+%           * fix error with load without eeglab in path. 
+% !!!!!!!!!!!!!Note: I have seen some recommendation for re-referencing data after IC removal, I did not include
+%this step in the GUI.!!!!!!!!!!!!!!!!!!!!!
 function manualqc()
 gui_version='v1.1.3';
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
@@ -55,12 +61,14 @@ try
 choice = questdlg2(sprintf([line1,line2]),...
     'ManualQC Warning',...
     'Cancel','Continue','Cancel');
-catch
-    warndlg('add with subfolders: eeglab_version/functions or run this gui from eeglab plugin','manualqc');
-end
 if strcmp(choice,'Cancel')==1
     return
 end
+catch
+    warndlg('add with subfolders: eeglab_version/functions or run this gui from eeglab plugin','manualqc');
+    return
+end
+
 
 
 %% check version
@@ -68,9 +76,6 @@ disp('Checking GitHub repository. Please be patient.')
 url  = 'https://github.com/zh1peng/ManualQC/blob/master/README.md';
 try
     str = webread(url);
-catch
-    disp('No internet connection');
-end
     [idx1, idx2] = regexp(str, 'Current version: '); 
     gitversion = str(idx2+1:idx2+6);
     
@@ -86,6 +91,10 @@ end
 %         disp('download finished')
         disp([gitversion,' is available on github'])
     end
+catch
+    disp('No internet connection');
+end
+    
         
 evalin('base','clear')
 evalin('base','QC_log={};')
@@ -219,10 +228,33 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             disp(stars);
             return
         end
-            prefix=get(ui.prefix,'String');
+        prefix=get(ui.prefix,'String');
         savename=strcat(prefix,filenames{n});
         EEG = eeg_checkset( EEG );
         quality_score_before=data_quality(EEG);
+        
+        %remove ICs
+        if ~isequal(just_ic,1) % in this case, ICs were selected but not removed first, then remove ICs if any.
+        if  ~isempty(ic2remove)
+            EEG=pop_subcomp(EEG,ic2remove,0);
+            EEG = eeg_checkset( EEG );
+            disp(stars);
+            disp(['Removed components: ',num2str(ic2remove)]);
+            disp(stars);
+            set(ui.info5,'String',['Removed components: ',num2str(ic2remove)]);
+        else
+            disp(stars);
+            disp('No component was selected');
+            disp(stars);
+            set(ui.info5,'String','No component was selected');
+        end
+        else
+            disp(stars);
+            disp('ICs were removed before');
+            disp(stars);
+        end
+        
+        
         % reject epochs
         if ~isempty(tmprej)
             EEG = pop_rejepoch(EEG,tmprej,0);
@@ -254,25 +286,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             disp(stars);
             set(ui.info4,'String','No bandchannel');
         end
-        if ~isequal(just_ic,1) % in this case, ICs were selected but not removed first, then remove ICs if any.
-        if  ~isempty(ic2remove)
-            EEG=pop_subcomp(EEG,ic2remove,0);
-            EEG = eeg_checkset( EEG );
-            disp(stars);
-            disp(['Removed components: ',num2str(ic2remove)]);
-            disp(stars);
-            set(ui.info5,'String',['Removed components: ',num2str(ic2remove)]);
-        else
-            disp(stars);
-            disp('No component was selected');
-            disp(stars);
-            set(ui.info5,'String','No component was selected');
-        end
-        else
-            disp(stars);
-            disp('ICs were removed before');
-            disp(stars);
-        end
+
             
         
         %calculate data quality after QC
