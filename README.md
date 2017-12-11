@@ -50,6 +50,11 @@ Realized that this could be useful by others who need to do manual QC on eegdata
  * disable 'Load' button after click
  * disable 'remove IC first' button after click save button
 
+2017-12-11
+* tiny bug when launching the GUI (version check and eeglab path warning)
+* change the order of IC remove. remove IC first if any when saving the datasets
+`Note: I have seen some recommendation for re-referencing data after IC removal, I did not include this step in the GUI.`
+
 ## Breif Manual
 ### Step0.
 Use it seperately from eeglab:
