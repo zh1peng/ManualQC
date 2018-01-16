@@ -1,9 +1,9 @@
 ## Manual QC
 <a href="https://imgur.com/XYa5qyJ"><img src="https://i.imgur.com/XYa5qyJ.png" title="source: imgur.com" /></a>
 
-#### Current version: v1.1.3
+#### Current version: v1.1.4
+#### This GUI is developed using Matlab2016a.
 Please cite this tools if you use it for your paper
-
 
 
 ### Breif Introduction
@@ -53,6 +53,13 @@ Realized that this could be useful by others who need to do manual QC on eegdata
 2017-12-11
 * tiny bug when launching the GUI (version check and eeglab path warning)
 * change the order of IC remove. remove IC first if any when saving the datasets
+* fix error with load without eeglab in path.
+
+2018-01-16 ManualQC v1.1.4:
+* changing eeglab options to save as 1 file instead of two.
+If your lab is using 2 files setting, just remove this:
+` pop_editoptions( 'option_savetwofiles', 0);`
+
 `Note: I have seen some recommendation for re-referencing data after IC removal, I did not include this step in the GUI.`
 
 ## Breif Manual
@@ -69,7 +76,7 @@ Use it as eeglab plugin:
 
 ### Step1. Search datasets using a regular expression.
 1. Enter a regular expression. One example is shown in the info panel. Type doc regexp to see more examples.
-  [Our lab is using `^Final\w*.set` as ‘Final��?is added as prefix on pre-processed data]
+  [Our lab is using `^Final\w*.set` as 'Final' is added as prefix on pre-processed data]
 2. Paste or select data directory.
 3. Click search.
 
