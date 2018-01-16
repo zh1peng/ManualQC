@@ -51,14 +51,19 @@
 %           * fix checking version issue 
 %           * change order of IC remove. remove IC first. 
 %           * fix error with load without eeglab in path. 
-% !!!!!!!!!!!!!Note: I have seen some recommendation for re-referencing data after IC removal, I did not include
-%this step in the GUI.!!!!!!!!!!!!!!!!!!!!!
+%v.1.1.4 (2018-1-16)
+%           * changing eeglab options first to save as 1 file instead of
+%           two. If your lab is using 2 files setting, just remove this:
+%           pop_editoptions( 'option_savetwofiles', 0);
+%
+%Note: I have seen some recommendations re-referencing data after IC removal, I did not include this step in the GUI.!!!!!!!!!!!!!!!!!!!!!
 function manualqc()
-gui_version='v1.1.3';
+gui_version='v1.1.4';
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
-line2= 'If you have any unsaved works, press Cancel to go back.';
+line2='EEGlab saving option will be set as save as 1 file.\n';
+line3= 'If you have any unsaved works, press Cancel to go back.';
 try
-choice = questdlg2(sprintf([line1,line2]),...
+choice = questdlg2(sprintf([line1,line2,line3]),...
     'ManualQC Warning',...
     'Cancel','Continue','Cancel');
 if strcmp(choice,'Cancel')==1
@@ -99,6 +104,7 @@ end
 evalin('base','clear')
 evalin('base','QC_log={};')
 evalin('base','close all')
+pop_editoptions( 'option_savetwofiles', 0);
 %% Define call back functions
 global filepath filenames n EEG tmprej ui chanlisttmp ic2remove chanliststr qc_log just_ic;
 qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Removed ICs'',''Comments'',''Rating'',''Quality Score Before'',''Quality Score After''};'); %don't want remove ' by hand.
