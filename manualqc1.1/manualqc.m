@@ -52,13 +52,15 @@
 %           * change order of IC remove. remove IC first. 
 %           * fix error with load without eeglab in path. 
 %v.1.1.4 (2018-1-16)
-%           * changing eeglab options first to save as 1 file instead of
+%           * change eeglab options to save as 1 file instead of
 %           two. If your lab is using 2 files setting, just remove this:
 %           pop_editoptions( 'option_savetwofiles', 0);
-%
-%Note: I have seen some recommendations re-referencing data after IC removal, I did not include this step in the GUI.!!!!!!!!!!!!!!!!!!!!!
+%v.1.1.5 (2018-4-20)
+%           *improve a few things after saving dateset
+%           *change ICs number to show as 35
+
 function manualqc()
-gui_version='v1.1.4';
+gui_version='v1.1.5';
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
 line2='EEGlab saving option will be set as save as 1 file.\n';
 line3= 'If you have any unsaved works, press Cancel to go back.';
@@ -146,6 +148,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         set(ui.info3,'String','Bad epochs: ')
         set(ui.info4,'String','Bad Channels: ')
         set(ui.info5,'String','ICs to remove: ')
+        set(ui.savedir,'String',filepath{n});
         try
             EEG = pop_loadset('filename',filenames{n},'filepath',filepath{n});
             EEG = eeg_checkset( EEG );
@@ -206,7 +209,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
     end
 % 5 ica_cmd ---to do modify the function
     function ica_cmd(hObject,eventdata)
-        [EEG]=modified_pop_selectcomps( EEG, [1:28]);
+        [EEG]=modified_pop_selectcomps( EEG, [1:35]);
         EEG = eeg_checkset( EEG );
         %test set(ui.info3,'String',['Bad epochs: ', num2str(1:200)])
         % set(ui.info2,'String',['Bad epochs: ', num2str(find(tmprej==1))])
@@ -337,7 +340,10 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             set(ui.badchan,'enable','off');
             set(ui.ica,'enable','off')
             set(ui.save,'enable','off')
+            set(ui.load,'enable','on')
             set(ui.justremove,'enable','off'); 
+            set(ui.comments,'String', 'User''s Comments')
+            
             %         set(ui.update,'enable','off')
             %         set(ui.info7,'String','User Rating: Usable')
             %         set(ui.info6,'String','User Comments: ')
@@ -356,7 +362,6 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
                 set(ui.idxbox, 'String',num2str(n+1));
             else
                 set(ui.idxbox, 'String','end');
-                
                 set(ui.info7,'String','')
                 set(ui.info6,'String','')
                 set(ui.info3,'String','')
