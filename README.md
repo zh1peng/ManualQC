@@ -1,7 +1,7 @@
 ## Manual QC
 <a href="https://imgur.com/XYa5qyJ"><img src="https://i.imgur.com/XYa5qyJ.png" title="source: imgur.com" /></a>
 
-#### Current version: v1.1.4
+#### Current version: v1.1.5
 #### This GUI is developed using Matlab2016a.
 Please cite this tools if you use it for your paper
 
@@ -60,7 +60,10 @@ Realized that this could be useful by others who need to do manual QC on eegdata
 If your lab is using 2 files setting, just remove this:
 ` pop_editoptions( 'option_savetwofiles', 0);`
 
-`Note: I have seen some recommendation for re-referencing data after IC removal, I did not include this step in the GUI.`
+2018-04-20 ManualQC v.1.1.5 
+
+* improve a few things after saving dateset
+* change ICs number to show as 35
 
 ## Breif Manual
 ### Step0.
