@@ -58,9 +58,13 @@
 %v.1.1.5 (2018-4-20)
 %           *improve a few things after saving dateset
 %           *change ICs number to show as 35
+%v.1.1.6 (2024-2-21)
+% load log file if it is saved using the same name as the dataset
+% dump log information to the log file if it exist
+
 
 function manualqc()
-gui_version='v1.1.5';
+gui_version='v1.1.6';
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
 line2='EEGlab saving option will be set as save as 1 file.\n';
 line3= 'If you have any unsaved works, press Cancel to go back.';
@@ -152,6 +156,19 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         try
             EEG = pop_loadset('filename',filenames{n},'filepath',filepath{n});
             EEG = eeg_checkset( EEG );
+            
+            % read associated log file
+            [~, basename, ~] = fileparts(filenames{n});  % Split the filename into parts
+            logFilename = fullfile(filepath{n}, [basename '.log']);  % Construct the log filename with .log extension
+            
+            % Check if the log file exists
+            if exist(logFilename, 'file') == 2
+                % Open the log file for reading
+                edit(logFilename);
+            else
+                fprintf('Log file does not exist for %s\n', filenames{n});
+            end
+            
             set(hf,'Name',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)]);
             %set(ui.info2,'String',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)])
             % Initial scale in scroll. Very rough estimation of data quality
@@ -333,6 +350,49 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             qc_info_temp_bak=['qc_info_bak_on_',datestr(now,'HH.MM'),'.csv'];
             cell2csv(fullfile(output_path,qc_info_temp_bak),qc_log);
             
+            % append tmp_info to log file
+            [~, basename, ~] = fileparts(filenames{n});  % Split the filename into parts
+            logFilename = fullfile(filepath{n}, [basename '.log']);  % Construct the log filename with .log extension
+    
+            % Check if the log file exists
+            if exist(logFilename, 'file') == 2
+                fileID= fopen(logFilename, 'a'); % Write the heading to the file
+                fprintf(fileID, '=== ManualQC Record ===\n');
+                
+                labels = {'Dataset:', 'Rejected Trials:', 'Interpolated Channels:', 'Removed ICs:', 'Comments:', 'Rating:', 'Quality Score Before:', 'Quality Score After:'};
+                
+                % Ensure tmp_info has the correct length
+                if length(tmp_info) ~= length(labels)
+                    error('tmp_info does not match the expected number of labels.');
+                end
+                
+                % Iterate over each entry in tmp_info and write it with its label
+                for i = 1:length(tmp_info)
+                    % Check if tmp_info{i} is empty and set it to 'None' if it is
+                    if isempty(tmp_info{i})
+                        infoString = 'None';
+                    elseif isnumeric(tmp_info{i})
+                        % If the info entry is numeric, convert it to string
+                        infoString = num2str(tmp_info{i});
+                    else
+                        % If the info entry is already a string, use it directly
+                        infoString = tmp_info{i};
+                    end
+             
+                % Write the label and the info entry to the file
+                fprintf(fileID, '%s %s\n', labels{i}, infoString);
+                   end
+                 fprintf(fileID, 'QC file saved as %s/%s\n', output_path, savename);
+                % Close the file
+                fclose(fileID);
+                
+                % Notify the user
+                fprintf('Manual QC record has been saved\n');
+            else
+                fprintf('Log file does not exist: %s\n', logFilename);
+            end
+                
+                
             
             assignin('base','QC_log',qc_log);
             set(ui.info2, 'String','file saved');
@@ -623,6 +683,7 @@ ui.info7=uicontrol('Parent', hf,'Units', 'Normalized', ...
     'ForegroundColor',txtblue,...
     'FontSize',12,...
     'HorizontalAlignment','left');
+
 % Line6 Update and Save
 ui.prefix=uicontrol('Parent', hf,'Units', 'Normalized', ...
     'Position', [0.05 0.17 0.2 0.06], ...
@@ -689,6 +750,8 @@ set(ui.save,'enable','off')
 set(ui.load,'enable','off')
 set(ui.justremove,'enable','off')
 end
+
+
 %% ====================================================================================
 %               Functions (some are customized functions from eeglab)
 %% ====================modified_eegplot=================================
