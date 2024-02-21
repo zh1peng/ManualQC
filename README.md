@@ -1,144 +1,118 @@
 ## Manual QC
 <a href="https://imgur.com/XYa5qyJ"><img src="https://i.imgur.com/XYa5qyJ.png" title="source: imgur.com" /></a>
 
-#### Current version: v1.1.5
-#### This GUI is developed using Matlab2016a.
-Please cite this tools if you use it for your paper
+#### Current Version: v1.1.6
+#### This GUI was developed using Matlab 2016a.
+Please cite this tool if you use it in your paper.
 
+### Brief Introduction
+While more algorithms have been developed to automatically detect and remove EEG artifacts, manual intervention is often still necessary. In our lab, all EEG datasets undergo manual QC. When I began performing QC on EEG data two years ago, I had to navigate through multiple menus to load datasets, remove bad epochs, interpolate bad channels, remove ICs, and save datasets. Then, I manually recorded this information and added comments where necessary. Finding no efficient solution in EEGLAB, I incorporated QC-related functions from EEGLAB into a single GUI (in-house version) [https://github.com/zh1peng/EEGQC_GUI]. This GUI has been used in our lab for a year and has proven effective.
 
-### Breif Introduction
-Currently, more algorithms have been developed to automatically detect and remove EEG artefacts, but manual inventions are still needed. At least, in our lab, all EEG datasets have been QCed manually. When I started running QC on EEG data two years ago, I had to click the menu multiple times to load dataset, remove bad epoches, interpolate bad channels, remove ICs and save dataset. Then recorded those info manually and added comments if necessary. I couldn’t find an efficient way to do that from eeglab, so I incorporated QC related functions from eeglab and assembled them into one GUI. (in-house version) [https://github.com/zh1peng/EEGQC_GUI]. This GUI have been used in our lab for one year and it worked well.
+Believing this could benefit others needing to perform manual QC on EEG data, I re-programmed the QC GUI with:
 
-Realized that this could be useful by others who need to do manual QC on eegdata. I re-programmed it QC GUI with
+1. Advanced GUI-building codes [all functionalities in one file].
+2. A better interface that is similar to EEGLAB.
+3. Customized EEGLAB functions to facilitate the QC process.
+4. A fix for a minor bug present in the in-house version.
 
-1.Advanced GUI-building codes [all stuffs in one file].
+### Release Notes:
+- **2017-10-09**: ManualQC v1.0 Released.
+- **2017-10-10**: Minor bug fixed/typo corrected.
+- **2017-10-24**: ManualQC v1.1:
+  - Added a new button allowing users to remove ICs first.
+  - Added as an eegplugin.
+  - Fixed the save bug.
+  - Now calculates the number of trials marked as bad.
+- **2017-10-28**: ManualQC v1.1.1:
+  - Fixed `xlswrite` error on Linux/Mac.
+  - Added a button to plot IC activations, giving info on which ICs should be removed.
+  - Improved display of search results.
+- **2017-11-11**: ManualQC v1.1.2:
+  - Added version check at GUI initiation.
+- **2017-11-13**:
+  - Added `cell2csv`.
+  - Fixed a save error.
+- **2017-11-27**: ManualQC v1.1.3:
+  - Fixed a minor bug; couldn't find functions from EEGLAB.
+  - Disabled 'Load' button after clicking.
+  - Disabled 'Remove IC first' button after clicking the save button.
+- **2017-12-11**:
+  - Fixed a minor bug when launching the GUI (version check and EEGLAB path warning).
+  - Changed the order of IC removal. Now removes IC first if any when saving the datasets.
+  - Fixed error with load without EEGLAB in path.
+- **2018-01-16**: ManualQC v1.1.4:
+  - Changed EEGLAB options to save as one file instead of two. If your lab uses the 2 files setting, remove this: `pop_editoptions('option_savetwofiles', 0);`
+- **2018-04-20**: ManualQC v1.1.5:
+  - Improved a few things after saving the dataset.
+  - Changed the displayed number of ICs to show as 35.
+- **2024-02-21**: ManualQC v1.1.6:
+  - Loads the log file if it is saved using the same name as the dataset.
+  - Dumps QC information to the log file if it exists.
 
-2.Better interface that is similar to eeglab.
+## Brief Manual
+### Step 0:
+Use it separately from EEGLAB:
+1. Add EEGLAB to the Matlab path.
+2. Add ManualQC to the Matlab path.
+3. Run ManualQC.
 
-3.Customised eeglab functions to facilitate QC process.
+Use it as an EEGLAB plugin:
+1. Download it from the plugin manager of EEGLAB [if available], or download the ManualQC1.1 folder to the plugins folder in EEGLAB.
+2. Load any dataset, and the tool entry will appear in the tools menu.
 
-4.A tiny bug appears in in-house version fixed
-
-
-### Release notes:
-2017-10-09 ManualQC v1.0 Released
-
-2017-10-10 Tiny bug fixed/Typo corrected
-
-2017-10-24 ManualQC v1.1:
-* mainly added in a new button which allows users to do ICs removal first
-* added as eegplugin
-* fixed the save bug
-* calculate how many trials are marked as bad trials
-
-2017-10-28 ManualQC v1.1.1:
-*  fixed xlswrite on linux/mac error
-*  added button to plot ICs activition giving info on the ICs should be removed or not.
- *  display search results.
-
-
-2017-11-11 ManualQC v1.1.2:
-
-* check version when initiate the gui
-
-2017-11-13
-* add cell2csv  11.13
-* fix save error (Orz)
-
-2017-11-27 ManualQC v1.1.3:
- * tiny bug fixed; couldn't find functions from eeglab
- * disable 'Load' button after click
- * disable 'remove IC first' button after click save button
-
-2017-12-11
-* tiny bug when launching the GUI (version check and eeglab path warning)
-* change the order of IC remove. remove IC first if any when saving the datasets
-* fix error with load without eeglab in path.
-
-2018-01-16 ManualQC v1.1.4:
-* changing eeglab options to save as 1 file instead of two.
-If your lab is using 2 files setting, just remove this:
-` pop_editoptions( 'option_savetwofiles', 0);`
-
-2018-04-20 ManualQC v.1.1.5 
-
-* improve a few things after saving dateset
-* change ICs number to show as 35
-
-## Breif Manual
-### Step0.
-Use it seperately from eeglab:
-
-1. Add eeglab in Matlab path
-2. Add manualqc in Matlab path
-3. Run manualqc
-
-Use it as eeglab plugin:
-1. download it from plugin manager of eeglab [if available]. or downlaod the manualqc1.1 folder to the plugins folder in eeglab
-2. load any dataset and the tool entry will be appeared in tools menu.
-
-### Step1. Search datasets using a regular expression.
-1. Enter a regular expression. One example is shown in the info panel. Type doc regexp to see more examples.
-  [Our lab is using `^Final\w*.set` as 'Final' is added as prefix on pre-processed data]
-2. Paste or select data directory.
+### Step 1: Search datasets using a regular expression.
+1. Enter a regular expression. An example is shown in the info panel. Type `doc regexp` to see more examples. [Our lab uses `^Final\w*.set` since 'Final' is added as a prefix to pre-processed data.]
+2. Paste or select the data directory.
 3. Click search.
 
-If there is any file matching the regular expression in the data directory:
-* Load button will be enabled
-* Index of file to load will be updated to 1.
-* File number will be displayed.
+If any file matching the regular expression is found in the data directory:
+- The Load button will be enabled.
+- The index of the file to load will be updated to 1.
+- The file number will be displayed.
 
-### Step2. Load a dataset.
-**This only works when you are trying to load set file and the index of dataset is correct.**
+### Step 2: Load a dataset.
+**This only works when you are trying to load a .set file, and the dataset index is correct.**
 
 If the dataset is loaded correctly:
-* Some basic information of the dataset will be display.
-  (Note: Data quality is calculated as the initial scale when epoch scrolling function. To some extent, this is a good index for data quality.)
-* Epochs/Channels/ICs button will be enabled.
+- Basic information about the dataset will be displayed. (Note: Data quality is calculated as the initial scale when using the epoch scrolling function. To some extent, this is a good index for data quality.)
+- The Epochs/Channels/ICs button will be enabled.
 
+### Step 3: Check epochs, channels, and ICs.
+#### Exploring Epochs
+Inspect epochs and select the bad ones in the usual way.
+- Mark: Mark selected epochs as bad epochs. The bad epochs will be displayed in the information panel and removed when you save the dataset.
 
+#### Select Channels (ctrl/shift for multiple selections)
+- Clear: Clear previously marked channels.
+- Mark: Mark the selected channels as bad channels.
+- Property: Plot selected channels' properties. The bad channels will be displayed in the information panel and interpolated by default when you save the dataset.
 
-### Step3. Check epochs, channels and ICs.
-#### Exploring epochs
-Inspect epochs and select bad ones in a normal way.
-Mark: Mark selected epocehs as bad epochs.
-The Bad epochs will be displayed in the information panel and removed when you save the dataset.
-#### Select channels (ctrl/shift for multiple selections)
-* Clear: clear previously marked channels.
-* Mark: Mark the selected channels as bad channels.
-* Property: Plot selected channels properties.
+#### Select ICs
+- Click the label above the topoplots.
+- Mark the IC as Accept or Reject. Then the label of rejected ICs will be in red, and accepted ICs will be in green.
+- Selected ICs: Update selected ICs. This is for testing IC removal.
+- Test Removal: Compare data before and after the removal of selected ICs.
+- Test Averaged Removal: Compare averaged data before and after the removal of selected ICs.
+- Clear All Selections: This will clear ICs and reopen this window.
+- Ok: Confirm the selection of ICs to be removed. The selected ICs will be displayed in the information panel and removed when you save the dataset.
 
-The Bad channels will be displayed in the information panel and interpolated by default way when you save the dataset.
+#### Remove ICs First
+Some trials marked as bad could be kept if some bad ICs are removed first. The "Remove Bad ICs First" button is designed for situations where you want to remove some bad ICs first and then perform the rest of the QC.
 
-#### Select ICs.
-* Click the label above the topoplots.
-* Mark the IC as Accept or Reject.
-    Then the label of rejected ICs will be in red and accepted ICs will be in green.
-* Selected ICs: update selected ICs. This is for testing IC removal.
-* Test removal: Compare data before and after the removal of selected ICs.
-* Test removal: Compare averaged data before and after the removal of selected ICs.
-* Clear all selections: will clear ICs and reopen this window.
-* Ok: Confirm selection of ICs to be removed.
+### Step 4: Add user’s comments and rate the dataset.
+Make comments and rate the dataset, such as:
+- A lot of alpha activity.
+- A lot of movement or muscle/EMG artifacts.
+- Over 20% of epochs removed -> mark as 'caution' for 'data usable?'
+- Over 40-50% of epochs removed -> mark as 'bad' for 'data usable?'
 
-The selected ICs will be displayed in the information panel and removed when you save the dataset.
+Click "Add" to update comments.
 
-#### Remove ICs first
-Some trials marked as bad could be kept if you have removed some bad ICs. The idea for the button Remove Bad ICs First is designed for the situation that you want to remove some bad ICs first and do the rest QC.
+### Step 5: Save the manually QCed dataset.
+- QC info will be updated in the QC_log in the workspace.
+- Temporary QC info will be saved as qc_info_bak_on_HH.MM in the save path.
 
-### Step4. Add user’s comments and rate the dataset.
-Make comments and rate dataset like:
-* a lot of alpha
-* a lot of movement or muscle/EMG artefacts
-* over 20% of epochs removed -> mark as 'caution' for 'data usable?'
-* over 40-50% of epochs removed -> mark as 'bad' for 'data usable?'
-
-Click add to update comments
-
-### Step5. Save manually QCed dataset.
-* QC info will be updated in QC_log in workspace
-* Temporary QC info will be saved as qc_info_bak_on_HH.MM in the save path.
-
-### Step6.  Save the QC_log by copying or xlswrite etc
-Final QC info will be saved, when you finish the last file.
+### Step 6: Save the QC_log by copying or using xlswrite, etc.
+The final QC info will be saved when you finish the last file.
 
 ## Tips on QC
