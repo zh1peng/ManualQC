@@ -159,14 +159,22 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             
             % read associated log file
             [~, basename, ~] = fileparts(filenames{n});  % Split the filename into parts
-            logFilename = fullfile(filepath{n}, [basename '.log']);  % Construct the log filename with .log extension
-            
+            logFolder = fullfile(filepath{n}, [basename(1:end-13), '_log']);
+            logFilename = fullfile(logFolder,  [basename '.log']); % Construct the log filename with .log extension
             % Check if the log file exists
             if exist(logFilename, 'file') == 2
                 % Open the log file for reading
                 edit(logFilename);
             else
                 fprintf('Log file does not exist for %s\n', filenames{n});
+            end
+            
+            htmlFilename=fullfile(logFolder, 'PreprocessingRecords.html');
+            if exist(htmlFilename, 'file') == 2
+                % Open the log file for reading
+                web( htmlFilename);
+            else
+                fprintf('PreprocessingRecords.html file does not exist for %s\n', filenames{n});
             end
             
             set(hf,'Name',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)]);
