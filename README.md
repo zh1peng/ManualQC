@@ -62,6 +62,7 @@ Believing this tool could benefit others performing manual QC on EEG data, I rep
   - improve warning dialogus
   - proofread documentation using LLM
   - include a Chinese documentation
+  - save QC information to EEG.etc 
 
 ## Brief Manual
 

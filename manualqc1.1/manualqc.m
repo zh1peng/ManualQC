@@ -1,5 +1,5 @@
 % manualqc provides GUI for doing quality control (QC)  manually on the EEG data. 
-% Author: Zhipeng Cao caoz@tcd.ie
+% Author: Zhipeng Cao zhipeng30@foxmail.com
 % Thanks to Hanni  for giving tests and helpful feedbacks.
 %
 % If you find any bugs/have good suggestions,please contact me. 
@@ -71,6 +71,7 @@
 %   - proofread documentation using LLM
 %   - include a Chinese documentation
 %   - remove logFile stuff
+%  - save QC information to EEG.etc structure
 
 
 
