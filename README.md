@@ -1,7 +1,7 @@
 ## Manual QC
 <a href="https://imgur.com/XYa5qyJ"><img src="https://i.imgur.com/XYa5qyJ.png" title="source: imgur.com" /></a>
 
-#### Current Version: v1.1.6
+#### Current Version: v1.1.7
 #### This GUI was developed using Matlab 2016a.
 If you use this tool in your paper, please cite it as follows:
 
@@ -155,3 +155,98 @@ The final QC information will be saved upon completing the last file.
 - Document any anomalies or deviations from standard procedures.
 - Ensure all saved datasets and logs are securely backed up.
 
+
+
+## 简要手册
+
+### 第0步：
+#### 独立使用 ManualQC（不作为 EEGLAB 插件）：
+1. 将 EEGLAB 添加到 MATLAB 路径中。
+2. 将 ManualQC 添加到 MATLAB 路径中。
+3. 运行 `ManualQC`。
+
+#### 作为 EEGLAB 插件使用：
+1. 从 EEGLAB 的插件管理器中下载（如果可用），或者将 `ManualQC1.1` 文件夹下载到 EEGLAB 的 `plugins` 文件夹中。
+2. 加载任意数据集，工具条目将出现在 "Tools" 菜单中。
+
+---
+
+### 第1步：使用正则表达式搜索数据集
+1. 输入一个正则表达式。信息面板中显示了一个示例。可以在 MATLAB 中键入 `doc regexp` 查看更多示例。  
+   - *（我们实验室使用 `^Final\w*.set`，因为 'Final' 是添加到预处理数据的前缀。）*
+2. 粘贴或选择数据目录。
+3. 点击 **Search**。
+
+如果在数据目录中找到匹配正则表达式的文件：
+- **Load** 按钮将被启用。
+- 要加载的文件索引将更新为 `1`。
+- 将显示找到的文件总数。
+
+---
+
+### 第2步：加载数据集
+**仅在加载 `.set` 文件且数据集索引正确时可用。**
+
+如果数据集成功加载：
+- 数据集的基本信息将显示出来。  
+  *(注意：数据质量在使用 epoch 滚动功能时作为初始指标计算。这是一个有用的数据质量指标。)*
+- **Epochs/Channels/ICs** 按钮将被启用。
+
+---
+
+### 第3步：检查 epochs、通道和 ICs
+#### 查看 Epochs
+检查 epochs 并标记坏的：
+- **Mark**：将选定的 epochs 标记为坏的。  
+  坏的 epochs 将显示在信息面板中，并在保存数据集时移除。
+
+#### 选择通道（按住 Ctrl/Shift 可多选）
+- **Clear**：清除先前标记的通道。
+- **Mark**：将选定的通道标记为坏通道。
+- **Property**：绘制选定通道的属性图。  
+  坏通道将显示在信息面板中，并在保存数据集时进行插值。
+
+#### 选择 ICs
+- 点击 topoplots 上方的标签。
+- 将 IC 标记为 **Accept** 或 **Reject**：  
+  - 被拒绝的 IC 用红色标记。
+  - 被接受的 IC 用绿色标记。
+- **Selected ICs**：更新选定的 IC 列表以测试移除。
+- **Test Removal**：比较移除选定 IC 前后的数据。
+- **Test Averaged Removal**：比较移除选定 IC 前后的平均数据。
+- **Clear All Selections**：清除所有 IC 选择并重新打开此窗口。
+- **Ok**：确认移除的 IC 选择。  
+  选定的 IC 将显示在信息面板中，并在保存数据集时移除。
+
+#### 优先移除 ICs
+如果优先移除坏 IC 可以保留更多的试验，请在继续执行其余 QC 之前使用 **Remove Bad ICs First** 按钮。
+
+---
+
+### 第4步：添加用户评论并对数据集进行评分
+添加评论并对数据集评分，例如：
+- "大量 alpha 活动。"
+- "显著的运动或肌肉/EMG 伪影。"
+- "移除了超过 20% 的 epochs -> 标记为 'caution'（数据可用？）"
+- "移除了超过 40-50% 的 epochs -> 标记为 'bad'（数据不可用？）"
+
+点击 **Add** 更新评论。
+
+---
+
+### 第5步：保存手动 QC 的数据集
+- QC 信息将更新到工作区中的 `QC_log`。
+- 临时 QC 信息将保存为 `qc_info_bak_on_HH.MM`，位于保存路径中。
+
+---
+
+### 第6步：保存 `QC_log`
+手动复制或使用 `xlswrite`（或类似功能）保存最终的 QC 日志。  
+在完成最后一个文件后，将保存最终的 QC 信息。
+
+---
+
+## 关于 QC 的提示
+- 定期审查 QC 流程以确保一致性。
+- 记录任何异常或偏离标准流程的情况。
+- 确保所有保存的数据集和日志已安全备份。

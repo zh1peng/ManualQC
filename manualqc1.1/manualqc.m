@@ -59,12 +59,20 @@
 %           *improve a few things after saving dateset
 %           *change ICs number to show as 35
 %v.1.1.6 (2024-2-21)
-% load log file if it is saved using the same name as the dataset
-% dump log information to the log file if it exist
+%           load log file if it is saved using the same name as the dataset
+%           dump log information to the log file if it exist
+% v1.1.7 (2025-01-09)
+%   - Make loading log file function more general.
+%   - Use fixed output path
+%   - add re-check button on the QC rating
+%   - automatically add prefix when QC rating is selected
+%   - give warning if QC rating is not selected
+%   - proofread documentation using LLM
+%   - include a Chinese documentation
 
 
 function manualqc()
-gui_version='v1.1.6';
+gui_version='v1.1.7';
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
 line2='EEGlab saving option will be set as save as 1 file.\n';
 line3= 'If you have any unsaved works, press Cancel to go back.';
@@ -138,7 +146,9 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             for file_idx=1:length(filenames)
                 file2display=sprintf([file2display,sprintf('%s\n',filenames{file_idx})])
             end
-            warndlg2(file2display,'ManualQC: Search results')   
+            % warndlg2(file2display,'ManualQC: Search results') 
+             % Create a custom scrollable window with background color
+            display_scrollable_results(file2display, 'ManualQC: Search Results');  
         end
     end
 % 2 load_cmd
@@ -146,28 +156,60 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         n=str2num(get(ui.idxbox,'String'));
         %if n>length(filenames)
         set(ui.info2,'String','Loading dataset');
-        set(ui.info7,'String','User Rating: Usable')
+        set(ui.info7,'String','User Rating: ')
         set(ui.info6,'String','User Comments: ')
         
         set(ui.info3,'String','Bad epochs: ')
         set(ui.info4,'String','Bad Channels: ')
         set(ui.info5,'String','ICs to remove: ')
-        set(ui.savedir,'String',filepath{n});
+        set(ui.prefix, 'String', ''); % Reset the prefix
+        set(ui.rating, 'SelectedObject', []); % Reset the rating
+
+        % set(ui.savedir,'String',filepath{n});
         try
             EEG = pop_loadset('filename',filenames{n},'filepath',filepath{n});
             EEG = eeg_checkset( EEG );
             
             % read associated log file
             [~, basename, ~] = fileparts(filenames{n});  % Split the filename into parts
-            logFolder = fullfile(filepath{n}, [basename(1:end-13), '_log']);
-            logFilename = fullfile(logFolder,  [basename '.log']); % Construct the log filename with .log extension
+            logFolder = fullfile(filepath{n}, [basename, '_log']);
+            logFilename_tmp = fullfile(logFolder,  [basename '.log']); % Construct the log filename with .log extension
+            logFilename_tmp2 = fullfile(filepath{n}, [basename, '_log.log']); % Construct the log filename with _log.log extension
             % Check if the log file exists
-            if exist(logFilename, 'file') == 2
-                % Open the log file for reading
-                edit(logFilename);
+            % Check which log file exists and assign to logFilename
+            if exist(logFilename_tmp, 'file') == 2
+                logFilename = logFilename_tmp;
+                % Read and display the log file
+                fileID = fopen(logFilename, 'r');
+                if fileID == -1
+                    fprintf('Error opening log file: %s\n', logFilename);
+                    return; % Exit on file open error
+                end
+                logContent = fread(fileID, '*char')';
+                fclose(fileID);
+                % Display the log content using display_scrollable_results
+                display_scrollable_results(logContent, sprintf('Log File: %s', basename));
+
+            elseif exist(logFilename_tmp2, 'file') == 2
+                logFilename = logFilename_tmp2;
+                % Read and display the log file
+                fileID = fopen(logFilename, 'r');
+                if fileID == -1
+                    fprintf('Error opening log file: %s\n', logFilename);
+                    return; % Exit on file open error
+                end
+                logContent = fread(fileID, '*char')';
+                fclose(fileID);  
+                % Display the log content using display_scrollable_results
+                display_scrollable_results(logContent, sprintf('Log File: %s', basename));
             else
+                % No log file found
                 fprintf('Log file does not exist for %s\n', filenames{n});
+                return; % Exit if no log file exists
             end
+
+            
+
             
             htmlFilename=fullfile(logFolder, 'PreprocessingRecords.html');
             if exist(htmlFilename, 'file') == 2
@@ -262,6 +304,11 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             disp(stars);
             return
         end
+        if  strcmp(get(ui.prefix, 'String'), '') || isempty(ui.rating.SelectedObject)
+            warndlg('Please provide a rating and ensure the prefix is not empty before saving.', 'Save Warning');
+            return; % Exit the function without saving
+        end
+
         prefix=get(ui.prefix,'String');
         savename=strcat(prefix,filenames{n});
         EEG = eeg_checkset( EEG );
@@ -352,96 +399,109 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         EEG.comments = pop_comments(EEG.comments,'',tmp_info{8},1);
         
         qc_log(n+1,1:8)=deal(tmp_info);
+
+        % Initialize EEG.etc.manualqc structure
+        EEG.etc.manualqc = struct();
+        % Populate manual QC fields
+        EEG.etc.manualqc.dataset_name = ifelse(isempty(tmp_name), 'None', tmp_name(1:end-4));
+        EEG.etc.manualqc.rejected_trials = ifelse(isempty(tmprej), 'None', num2str(find(tmprej == 1)));
+        EEG.etc.manualqc.interpolated_channels = ifelse(isempty(chanliststr), 'None', chanliststr);
+        EEG.etc.manualqc.removed_ics = ifelse(isempty(ic2remove), 'None', ...
+            [num2str(ic2remove), '(ICs were removed first)']);
+        EEG.etc.manualqc.comments = ifelse(isempty(tmp_comments), 'None', tmp_comments(16:end));
+        EEG.etc.manualqc.rating = ifelse(isempty(tmp_rating), 'None', tmp_rating(14:end));
+        EEG.etc.manualqc.quality_before = ifelse(isempty(quality_score_before), 'None', num2str(quality_score_before));
+        EEG.etc.manualqc.quality_after = ifelse(isempty(quality_score_after), 'None', num2str(quality_score_after));
+                
+        EEG = pop_saveset( EEG, 'filename',savename,'filepath',output_path);
+        %save tmp results-
+        qc_info_temp_bak=['qc_info_bak_on_',datestr(now,'HH.MM'),'.csv'];
+        cell2csv(fullfile(output_path,qc_info_temp_bak),qc_log);
         
-            EEG = pop_saveset( EEG, 'filename',savename,'filepath',output_path);
-            %save tmp results-
-            qc_info_temp_bak=['qc_info_bak_on_',datestr(now,'HH.MM'),'.csv'];
-            cell2csv(fullfile(output_path,qc_info_temp_bak),qc_log);
+        % append tmp_info to log file
+        [~, basename, ~] = fileparts(filenames{n});  % Split the filename into parts
+        logFilename = fullfile(filepath{n}, [basename '.log']);  % Construct the log filename with .log extension
+
+        % Check if the log file exists
+        if exist(logFilename, 'file') == 2
+            fileID= fopen(logFilename, 'a'); % Write the heading to the file
+            fprintf(fileID, '=== ManualQC Record ===\n');
             
-            % append tmp_info to log file
-            [~, basename, ~] = fileparts(filenames{n});  % Split the filename into parts
-            logFilename = fullfile(filepath{n}, [basename '.log']);  % Construct the log filename with .log extension
-    
-            % Check if the log file exists
-            if exist(logFilename, 'file') == 2
-                fileID= fopen(logFilename, 'a'); % Write the heading to the file
-                fprintf(fileID, '=== ManualQC Record ===\n');
-                
-                labels = {'Dataset:', 'Rejected Trials:', 'Interpolated Channels:', 'Removed ICs:', 'Comments:', 'Rating:', 'Quality Score Before:', 'Quality Score After:'};
-                
-                % Ensure tmp_info has the correct length
-                if length(tmp_info) ~= length(labels)
-                    error('tmp_info does not match the expected number of labels.');
+            labels = {'Dataset:', 'Rejected Trials:', 'Interpolated Channels:', 'Removed ICs:', 'Comments:', 'Rating:', 'Quality Score Before:', 'Quality Score After:'};
+            
+            % Ensure tmp_info has the correct length
+            if length(tmp_info) ~= length(labels)
+                error('tmp_info does not match the expected number of labels.');
+            end
+            
+            % Iterate over each entry in tmp_info and write it with its label
+            for i = 1:length(tmp_info)
+                % Check if tmp_info{i} is empty and set it to 'None' if it is
+                if isempty(tmp_info{i})
+                    infoString = 'None';
+                elseif isnumeric(tmp_info{i})
+                    % If the info entry is numeric, convert it to string
+                    infoString = num2str(tmp_info{i});
+                else
+                    % If the info entry is already a string, use it directly
+                    infoString = tmp_info{i};
                 end
-                
-                % Iterate over each entry in tmp_info and write it with its label
-                for i = 1:length(tmp_info)
-                    % Check if tmp_info{i} is empty and set it to 'None' if it is
-                    if isempty(tmp_info{i})
-                        infoString = 'None';
-                    elseif isnumeric(tmp_info{i})
-                        % If the info entry is numeric, convert it to string
-                        infoString = num2str(tmp_info{i});
-                    else
-                        % If the info entry is already a string, use it directly
-                        infoString = tmp_info{i};
-                    end
-             
-                % Write the label and the info entry to the file
-                fprintf(fileID, '%s %s\n', labels{i}, infoString);
-                   end
-                 fprintf(fileID, 'QC file saved as %s/%s\n', output_path, savename);
-                % Close the file
-                fclose(fileID);
-                
-                % Notify the user
-                fprintf('Manual QC record has been saved\n');
-            else
-                fprintf('Log file does not exist: %s\n', logFilename);
-            end
-                
-                
             
-            assignin('base','QC_log',qc_log);
-            set(ui.info2, 'String','file saved');
-            set(ui.scroll,'enable','off');
-            set(ui.badchan,'enable','off');
-            set(ui.ica,'enable','off')
-            set(ui.save,'enable','off')
-            set(ui.load,'enable','on')
-            set(ui.justremove,'enable','off'); 
-            set(ui.comments,'String', 'User''s Comments')
+            % Write the label and the info entry to the file
+            fprintf(fileID, '%s %s\n', labels{i}, infoString);
+                end
+                fprintf(fileID, 'QC file saved as %s/%s\n', output_path, savename);
+            % Close the file
+            fclose(fileID);
             
-            %         set(ui.update,'enable','off')
-            %         set(ui.info7,'String','User Rating: Usable')
-            %         set(ui.info6,'String','User Comments: ')
-            %         set(ui.info2,'String','Dataset: ')
-            %         set(ui.info3,'String','Bad epochs: ')
-            %         set(ui.info4,'String','Bad Channels: ')
-            %         set(ui.info5,'String','ICs to remove: ')
-            EEG=[];
-            ic2remove=[];
-            tmprej=[];
-            chanlisttmp=[];
-            just_ic=[];
-            chanliststr=[];
-            tmp_info={};
-            if n+1<=length(filenames)
-                set(ui.idxbox, 'String',num2str(n+1));
-            else
-                set(ui.idxbox, 'String','end');
-                set(ui.info7,'String','')
-                set(ui.info6,'String','')
-                set(ui.info3,'String','')
-                set(ui.info4,'String','')
-                set(ui.info5,'String','')
-                warndlg2('No more files.','ManualQC')
-                set(ui.info2, 'String','No more files.');
-                qc_info_final=['final_qc_info_on_',datestr(now,'HH.MM'),'.csv'];
-                cell2csv(fullfile(output_path,qc_info_final),qc_log);
-            end
+            % Notify the user
+            fprintf('Manual QC record has been saved\n');
+        else
+            fprintf('Log file does not exist: %s\n', logFilename);
+        end
+            
+            
         
-    end
+        assignin('base','QC_log',qc_log);
+        set(ui.info2, 'String','file saved');
+        set(ui.scroll,'enable','off');
+        set(ui.badchan,'enable','off');
+        set(ui.ica,'enable','off')
+        set(ui.save,'enable','off')
+        set(ui.load,'enable','on')
+        set(ui.justremove,'enable','off'); 
+        set(ui.comments,'String', 'User''s Comments')
+        
+        %         set(ui.update,'enable','off')
+        %         set(ui.info7,'String','User Rating: Usable')
+        %         set(ui.info6,'String','User Comments: ')
+        %         set(ui.info2,'String','Dataset: ')
+        %         set(ui.info3,'String','Bad epochs: ')
+        %         set(ui.info4,'String','Bad Channels: ')
+        %         set(ui.info5,'String','ICs to remove: ')
+        EEG=[];
+        ic2remove=[];
+        tmprej=[];
+        chanlisttmp=[];
+        just_ic=[];
+        chanliststr=[];
+        tmp_info={};
+        if n+1<=length(filenames)
+            set(ui.idxbox, 'String',num2str(n+1));
+        else
+            set(ui.idxbox, 'String','end');
+            set(ui.info7,'String','')
+            set(ui.info6,'String','')
+            set(ui.info3,'String','')
+            set(ui.info4,'String','')
+            set(ui.info5,'String','')
+            warndlg2('No more files.','ManualQC')
+            set(ui.info2, 'String','No more files.');
+            qc_info_final=['final_qc_info_on_',datestr(now,'HH.MM'),'.csv'];
+            cell2csv(fullfile(output_path,qc_info_final),qc_log);
+        end
+    
+end
 % 9 data_quality Initial scale in scroll. Very rough estimation of data quality
 %   From my experience, normally (at least for 70% data), small number indicates good quality
     function quality_index=data_quality(EEG)
@@ -461,9 +521,22 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         quality_index=spacing;
     end
 %10 radio selection response function
-    function bselection(source,event)
-        set(ui.info7,'String',['User Rating: ', event.NewValue.String]);
+function bselection(source, event)
+    % Update the info display
+    set(ui.info7, 'String', ['User Rating: ', event.NewValue.String]);
+    
+    % Update the ui.prefix based on the selection
+    switch event.NewValue.String
+        case 'Usable'
+            set(ui.prefix, 'String', 'qced_');
+        case 'Not usable'
+            set(ui.prefix, 'String', 'bad_');
+        case 'Recheck'
+            set(ui.prefix, 'String', 'recheck_');
+        otherwise
+            set(ui.prefix, 'String', ''); % Default to empty if unexpected input
     end
+end
 
 %11. New feature: remove bad ics first
 %only epochs and badchannels are empty,this button will be enabled.
@@ -505,7 +578,7 @@ hf = figure('Units', 'Normalized', ...
     'Color',bgblue,...
     'Name',['ManualQC ',gui_version],...
     'NumberTitle', 'off',...
-    'CloseRequestFcn', 'delete(gcf);disp(''Thank you for using Manual QC.'')');
+    'CloseRequestFcn', @customCloseRequestFcn);
 %Line1-Title
 ui.tittle1=uicontrol('Parent', hf,'Units', 'Normalized', ...
     'Position', [0.35 0.9 0.2 0.07], ...
@@ -610,13 +683,22 @@ ui.r1 = uicontrol(ui.rating,'Style',...
     'Position',[0.03 0.2 0.25 0.5],...
     'HandleVisibility','off','BackgroundColor',bgblue, 'FontSize',12);
 ui.r2 = uicontrol(ui.rating,'Style','radiobutton','Units', 'Normalized',...
-    'String','Caution',...
+    'String','Recheck',...
     'Position',[0.31 0.2 0.3 0.5],...
     'HandleVisibility','off','BackgroundColor',bgblue,'FontSize',12);
 ui.r3 = uicontrol(ui.rating,'Style','radiobutton','Units', 'Normalized',...
     'String','Not usable',...
     'Position',[0.63 0.2 0.34 0.5],...
     'HandleVisibility','off','BackgroundColor',bgblue,'FontSize',12);
+
+
+% Temporarily disable the SelectionChangedFcn
+ui.rating.SelectionChangedFcn = [];
+% Clear the default selection
+ui.rating.SelectedObject = []; 
+% Re-enable the SelectionChangedFcn
+ui.rating.SelectionChangedFcn = @bselection;
+% Make the group visible
 ui.rating.Visible = 'on';
 
 ui.comments=uicontrol('Parent', hf, 'Units', 'Normalized', ...
@@ -757,6 +839,52 @@ set(ui.save,'enable','off')
 % set(ui.update,'enable','off')
 set(ui.load,'enable','off')
 set(ui.justremove,'enable','off')
+end
+
+% Custom CloseRequestFcn for Goodbye Message
+function customCloseRequestFcn(hObject, ~)
+    % delete(gcf);
+    disp('Thank you for using ManualQC! 🎉');
+    disp('I hope it made your EEG quality control journey smoother and less painful.');
+    disp('If you found it helpful, please consider citing this tool in your work: https://github.com/zh1peng/ManualQC');
+    disp('Got ideas, bug reports, or just want to say hi? Contributions are always welcome – let’s make ManualQC even better together. 🚀');
+    disp('Happy analyzing, and may your EEG be forever artifact-free! ✨✨');
+    
+    % Delete the figure
+    delete(hObject);
+end
+
+% Nested utility function for conditional assignment
+function output = ifelse(condition, value_if_true, value_if_false)
+    if condition
+        output = value_if_true;
+    else
+        output = value_if_false;
+    end
+end
+
+function display_scrollable_results(content, title)
+    % Define background color
+    bgblue = [0.66, 0.76, 1.00];
+    btnblue=[0.93 0.96 1];
+    % Create a figure for the scrollable dialog
+    f = figure('Name', title, ...
+               'NumberTitle', 'off', ...
+               'MenuBar', 'none', ...
+               'ToolBar', 'none', ...
+               'Resize', 'on', ...
+               'Position', [300, 300, 500, 400], ... % Adjust size as needed
+               'Color', bgblue); % Set background color
+    
+    % Add an editable text box with scroll capability
+    uicontrol('Style', 'edit', ...
+              'String', content, ...
+              'HorizontalAlignment', 'left', ...
+              'Max', 2, ... % Enables multi-line scrolling
+              'Min', 0, ...
+              'Enable', 'inactive', ... % Prevent user edits
+              'Position', [10, 10, 480, 380], ... % Adjust to fit figure
+              'BackgroundColor', btnblue); % White background for text area
 end
 
 
