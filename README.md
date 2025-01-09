@@ -53,7 +53,6 @@ Believing this tool could benefit others performing manual QC on EEG data, I rep
   - Added functionality to load the log file if saved with the same name as the dataset.
   - Updated QC information to be dumped into the log file if it exists.
 - **2025-01-09**: ManualQC v1.1.7:
-  - Make loading log file function more general.
   - Use fixed output path
   - add re-check button on the QC rating
   - automatically add prefix when QC rating is selected
