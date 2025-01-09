@@ -170,54 +170,54 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             EEG = pop_loadset('filename',filenames{n},'filepath',filepath{n});
             EEG = eeg_checkset( EEG );
             
-            % read associated log file
-            [~, basename, ~] = fileparts(filenames{n});  % Split the filename into parts
-            logFolder = fullfile(filepath{n}, [basename, '_log']);
-            logFilename_tmp = fullfile(logFolder,  [basename '.log']); % Construct the log filename with .log extension
-            logFilename_tmp2 = fullfile(filepath{n}, [basename, '_log.log']); % Construct the log filename with _log.log extension
-            % Check if the log file exists
-            % Check which log file exists and assign to logFilename
-            if exist(logFilename_tmp, 'file') == 2
-                logFilename = logFilename_tmp;
-                % Read and display the log file
-                fileID = fopen(logFilename, 'r');
-                if fileID == -1
-                    fprintf('Error opening log file: %s\n', logFilename);
-                    return; % Exit on file open error
-                end
-                logContent = fread(fileID, '*char')';
-                fclose(fileID);
-                % Display the log content using display_scrollable_results
-                display_scrollable_results(logContent, sprintf('Log File: %s', basename));
+            % % read associated log file
+            % [~, basename, ~] = fileparts(filenames{n});  % Split the filename into parts
+            % logFolder = fullfile(filepath{n}, [basename, '_log']);
+            % logFilename_tmp = fullfile(logFolder,  [basename '.log']); % Construct the log filename with .log extension
+            % logFilename_tmp2 = fullfile(filepath{n}, [basename, '.log']); % Construct the log filename with _log.log extension
+            % % Check if the log file exists
+            % % Check which log file exists and assign to logFilename
+            % if exist(logFilename_tmp, 'file') == 2
+            %     logFilename = logFilename_tmp;
+            %     % Read and display the log file
+            %     fileID = fopen(logFilename, 'r');
+            %     if fileID == -1
+            %         fprintf('Error opening log file: %s\n', logFilename);
+            %         return; % Exit on file open error
+            %     end
+            %     logContent = fread(fileID, '*char')';
+            %     fclose(fileID);
+            %     % Display the log content using display_scrollable_results
+            %     display_scrollable_results(logContent, sprintf('Log File: %s', basename));
 
-            elseif exist(logFilename_tmp2, 'file') == 2
-                logFilename = logFilename_tmp2;
-                % Read and display the log file
-                fileID = fopen(logFilename, 'r');
-                if fileID == -1
-                    fprintf('Error opening log file: %s\n', logFilename);
-                    return; % Exit on file open error
-                end
-                logContent = fread(fileID, '*char')';
-                fclose(fileID);  
-                % Display the log content using display_scrollable_results
-                display_scrollable_results(logContent, sprintf('Log File: %s', basename));
-            else
-                % No log file found
-                fprintf('Log file does not exist for %s\n', filenames{n});
-                return; % Exit if no log file exists
-            end
-
-            
+            % elseif exist(logFilename_tmp2, 'file') == 2
+            %     logFilename = logFilename_tmp2;
+            %     % Read and display the log file
+            %     fileID = fopen(logFilename, 'r');
+            %     if fileID == -1
+            %         fprintf('Error opening log file: %s\n', logFilename);
+            %         return; % Exit on file open error
+            %     end
+            %     logContent = fread(fileID, '*char')';
+            %     fclose(fileID);  
+            %     % Display the log content using display_scrollable_results
+            %     display_scrollable_results(logContent, sprintf('Log File: %s', basename));
+            % else
+            %     % No log file found
+            %     fprintf('Log file does not exist for %s\n', filenames{n});
+            %     return; % Exit if no log file exists
+            % end
 
             
-            htmlFilename=fullfile(logFolder, 'PreprocessingRecords.html');
-            if exist(htmlFilename, 'file') == 2
-                % Open the log file for reading
-                web( htmlFilename);
-            else
-                fprintf('PreprocessingRecords.html file does not exist for %s\n', filenames{n});
-            end
+
+            
+            % htmlFilename=fullfile(logFolder, 'PreprocessingRecords.html');
+            % if exist(htmlFilename, 'file') == 2
+            %     % Open the log file for reading
+            %     web( htmlFilename);
+            % else
+            %     fprintf('PreprocessingRecords.html file does not exist for %s\n', filenames{n});
+            % end
             
             set(hf,'Name',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)]);
             %set(ui.info2,'String',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)])
@@ -418,47 +418,47 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         qc_info_temp_bak=['qc_info_bak_on_',datestr(now,'HH.MM'),'.csv'];
         cell2csv(fullfile(output_path,qc_info_temp_bak),qc_log);
         
-        % append tmp_info to log file
-        [~, basename, ~] = fileparts(filenames{n});  % Split the filename into parts
-        logFilename = fullfile(filepath{n}, [basename '.log']);  % Construct the log filename with .log extension
+        % % append tmp_info to log file
+        % [~, basename, ~] = fileparts(filenames{n});  % Split the filename into parts
+        % logFilename = fullfile(filepath{n}, [basename '.log']);  % Construct the log filename with .log extension
 
-        % Check if the log file exists
-        if exist(logFilename, 'file') == 2
-            fileID= fopen(logFilename, 'a'); % Write the heading to the file
-            fprintf(fileID, '=== ManualQC Record ===\n');
+        % % Check if the log file exists
+        % if exist(logFilename, 'file') == 2
+        %     fileID= fopen(logFilename, 'a'); % Write the heading to the file
+        %     fprintf(fileID, '=== ManualQC Record ===\n');
             
-            labels = {'Dataset:', 'Rejected Trials:', 'Interpolated Channels:', 'Removed ICs:', 'Comments:', 'Rating:', 'Quality Score Before:', 'Quality Score After:'};
+        %     labels = {'Dataset:', 'Rejected Trials:', 'Interpolated Channels:', 'Removed ICs:', 'Comments:', 'Rating:', 'Quality Score Before:', 'Quality Score After:'};
             
-            % Ensure tmp_info has the correct length
-            if length(tmp_info) ~= length(labels)
-                error('tmp_info does not match the expected number of labels.');
-            end
+        %     % Ensure tmp_info has the correct length
+        %     if length(tmp_info) ~= length(labels)
+        %         error('tmp_info does not match the expected number of labels.');
+        %     end
             
-            % Iterate over each entry in tmp_info and write it with its label
-            for i = 1:length(tmp_info)
-                % Check if tmp_info{i} is empty and set it to 'None' if it is
-                if isempty(tmp_info{i})
-                    infoString = 'None';
-                elseif isnumeric(tmp_info{i})
-                    % If the info entry is numeric, convert it to string
-                    infoString = num2str(tmp_info{i});
-                else
-                    % If the info entry is already a string, use it directly
-                    infoString = tmp_info{i};
-                end
+        %     % Iterate over each entry in tmp_info and write it with its label
+        %     for i = 1:length(tmp_info)
+        %         % Check if tmp_info{i} is empty and set it to 'None' if it is
+        %         if isempty(tmp_info{i})
+        %             infoString = 'None';
+        %         elseif isnumeric(tmp_info{i})
+        %             % If the info entry is numeric, convert it to string
+        %             infoString = num2str(tmp_info{i});
+        %         else
+        %             % If the info entry is already a string, use it directly
+        %             infoString = tmp_info{i};
+        %         end
             
-            % Write the label and the info entry to the file
-            fprintf(fileID, '%s %s\n', labels{i}, infoString);
-                end
-                fprintf(fileID, 'QC file saved as %s/%s\n', output_path, savename);
-            % Close the file
-            fclose(fileID);
+        %     % Write the label and the info entry to the file
+        %     fprintf(fileID, '%s %s\n', labels{i}, infoString);
+        %         end
+        %         fprintf(fileID, 'QC file saved as %s/%s\n', output_path, savename);
+        %     % Close the file
+        %     fclose(fileID);
             
-            % Notify the user
-            fprintf('Manual QC record has been saved\n');
-        else
-            fprintf('Log file does not exist: %s\n', logFilename);
-        end
+        %     % Notify the user
+        %     fprintf('Manual QC record has been saved\n');
+        % else
+        %     fprintf('Log file does not exist: %s\n', logFilename);
+        % end
             
             
         
