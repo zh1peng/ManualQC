@@ -66,9 +66,12 @@
 %   - Use fixed output path
 %   - add re-check button on the QC rating
 %   - automatically add prefix when QC rating is selected
+%  - add a check for the prefix before saving
 %   - give warning if QC rating is not selected
 %   - proofread documentation using LLM
 %   - include a Chinese documentation
+%   - remove logFile stuff
+
 
 
 function manualqc()
@@ -84,7 +87,7 @@ if strcmp(choice,'Cancel')==1
     return
 end
 catch
-    warndlg('add with subfolders: eeglab_version/functions or run this gui from eeglab plugin','manualqc');
+    warndlg2('add with subfolders: eeglab_version/functions or run this gui from eeglab plugin','manualqc');
     return
 end
 
@@ -137,6 +140,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         if isempty(filenames)
             set(ui.idxbox, 'String','NA');
             set(ui.info2,'String','Cannot find any file with the regexp, try it again')
+            warndlg2('Cannot find any file with the regexp, try it again','Manual QC')
         else
             set(ui.idxbox, 'String','1');
             set(ui.info2,'String',sprintf('Find %d in the path',length(filenames)));
@@ -305,7 +309,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
             return
         end
         if  strcmp(get(ui.prefix, 'String'), '') || isempty(ui.rating.SelectedObject)
-            warndlg('Please provide a rating and ensure the prefix is not empty before saving.', 'Save Warning');
+            warndlg2('Please provide a rating and ensure the prefix is not empty before saving.', 'Save Warning');
             return; % Exit the function without saving
         end
 

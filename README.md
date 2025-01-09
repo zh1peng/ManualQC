@@ -58,6 +58,8 @@ Believing this tool could benefit others performing manual QC on EEG data, I rep
   - add re-check button on the QC rating
   - automatically add prefix when QC rating is selected
   - give warning if QC rating is not selected
+  - remove logFile stuff
+  - improve warning dialogus
   - proofread documentation using LLM
   - include a Chinese documentation
 
