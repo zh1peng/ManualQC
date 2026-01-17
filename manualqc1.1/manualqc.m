@@ -342,35 +342,62 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         
         
         % reject epochs
+% ----------------- reject epochs -----------------
+        rej_epoch_idx = [];          % epoch indices in CURRENT dataset (post-auto)
+        rej_trial_id  = [];          % either original TrialID (if available) or same as rej_epoch_idx
+        rej_id_space  = 'current_epoch_index';
+
+        % cache TrialID mapping if available (optional)
+        trialid_ok = false;
+        if isfield(EEG,'etc') && isfield(EEG.etc,'EEGdojo') && isfield(EEG.etc.EEGdojo,'TrialID') ...
+                && ~isempty(EEG.etc.EEGdojo.TrialID) && numel(EEG.etc.EEGdojo.TrialID) == EEG.trials
+            TrialID_before = EEG.etc.EEGdojo.TrialID(:);
+            trialid_ok = true;
+        end
+
         if ~isempty(tmprej)
-            EEG = pop_rejepoch(EEG,tmprej,0);
-            EEG = eeg_checkset( EEG );
+
+            if islogical(tmprej)
+                rej_epoch_idx = find(tmprej);
+            else
+                rej_epoch_idx = find(tmprej == 1);
+            end
+
+            % map to original trial IDs if TrialID exists
+            rej_trial_id = rej_epoch_idx;
+            if trialid_ok
+                rej_trial_id = TrialID_before(rej_epoch_idx);
+                rej_id_space = 'original_trial_id';
+            end
+
+            % store into EEG.etc.manualqc (do NOT overwrite later)
+            if ~isfield(EEG,'etc') || ~isstruct(EEG.etc), EEG.etc = struct(); end
+            if ~isfield(EEG.etc,'manualqc') || ~isstruct(EEG.etc.manualqc), EEG.etc.manualqc = struct(); end
+            EEG.etc.manualqc.rejected_epochs_current = rej_epoch_idx(:)';   % always saved
+            EEG.etc.manualqc.rejected_trials_id      = rej_trial_id(:)';    % original if possible
+            EEG.etc.manualqc.rejected_id_space       = rej_id_space;
+
+            % now actually remove epochs
+            EEG = pop_rejepoch(EEG, tmprej, 0);
+            EEG = eeg_checkset(EEG);
+
+            % update TrialID after deletion (only if it existed)
+            if trialid_ok
+                keepMask = true(numel(TrialID_before), 1);
+                keepMask(rej_epoch_idx) = false;
+                EEG.etc.EEGdojo.TrialID = TrialID_before(keepMask);
+            end
+
             disp(stars);
-            disp([num2str(find(tmprej==1)),' trails were removed']);
+            disp([num2str(rej_epoch_idx),' trails were removed']);
             disp(stars);
-            set(ui.info3,'String',[num2str(find(tmprej==1)),' trails were removed']);
+            set(ui.info3,'String',[num2str(rej_epoch_idx),' trails were removed']);
+
         else
             disp(stars);
-            disp(['No epoch was rejected']);
+            disp('No epoch was rejected');
             disp(stars);
             set(ui.info3,'String','No trail was removed');
-        end
-        % interpolated channels
-        if ~isempty(chanlisttmp)
-            for badi=1:length(chanlisttmp)
-                EEG = pop_interp(EEG,chanlisttmp(badi), 'spherical');
-                EEG = eeg_checkset( EEG );
-            end
-            badi=[];
-            disp(stars)
-            disp(['Interpolated channels (spherical): ',num2str(chanlisttmp)]);
-            disp(stars)
-            set(ui.info4,'String',['Interpolated channels (spherical): ',chanliststr]);
-        else
-            disp(stars);
-            disp('No bandchannel');
-            disp(stars);
-            set(ui.info4,'String','No bandchannel');
         end
 
             
@@ -405,11 +432,16 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         
         qc_log(n+1,1:8)=deal(tmp_info);
 
-        % Initialize EEG.etc.manualqc structure
-        EEG.etc.manualqc = struct();
+        % Initialize EEG.etc.manualqc structure (do not wipe existing fields)
+        if ~isfield(EEG,'etc') || ~isstruct(EEG.etc), EEG.etc = struct(); end
+        if ~isfield(EEG.etc,'manualqc') || ~isstruct(EEG.etc.manualqc), EEG.etc.manualqc = struct(); end
         % Populate manual QC fields
         EEG.etc.manualqc.dataset_name = ifelse(isempty(tmp_name), 'None', tmp_name(1:end-4));
-        EEG.etc.manualqc.rejected_trials = ifelse(isempty(tmprej), 'None', num2str(find(tmprej == 1)));
+        if isfield(EEG.etc,'manualqc') && isfield(EEG.etc.manualqc,'rejected_trials_id') && ~isempty(EEG.etc.manualqc.rejected_trials_id)
+            EEG.etc.manualqc.rejected_trials = num2str(EEG.etc.manualqc.rejected_trials_id);
+        else
+            EEG.etc.manualqc.rejected_trials = 'None';
+        end
         EEG.etc.manualqc.interpolated_channels = ifelse(isempty(chanliststr), 'None', chanliststr);
         EEG.etc.manualqc.removed_ics = ifelse(isempty(ic2remove), 'None', ...
             [num2str(ic2remove), '(ICs were removed first)']);
@@ -2821,7 +2853,7 @@ else
                         eegplot('drawp', 0);  % redraw background
                     end;
                 end;
-            elseif strcmp(get(fig, 'SelectionType'),'normal');
+            % elseif strcmp(get(fig, 'SelectionType'),'normal');
                 
                 
             end;
