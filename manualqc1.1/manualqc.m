@@ -509,22 +509,63 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
 end
 % 9 data_quality Initial scale in scroll. Very rough estimation of data quality
 %   From my experience, normally (at least for 70% data), small number indicates good quality
+    % function quality_index=data_quality(EEG)
+    %     maxindex = min(5000, EEG.pnts*EEG.trials);
+    %     stds = std(EEG.data(:,1:maxindex),[],2);
+    %     datastd = stds;
+    %     stds = sort(stds);
+    %     if length(stds) > 2
+    %         stds = mean(stds(2:end-1));
+    %     else
+    %         stds = mean(stds);
+    %     end;
+    %     spacing = stds*3;
+    %     if spacing > 10
+    %         spacing = round(spacing);
+    %     end
+    %     quality_index=spacing;
+    % end
     function quality_index=data_quality(EEG)
-        maxindex = min(1000, EEG.pnts*EEG.trials);
-        stds = std(EEG.data(:,1:maxindex),[],2);
-        datastd = stds;
-        stds = sort(stds);
-        if length(stds) > 2
-            stds = mean(stds(2:end-1));
-        else
-            stds = mean(stds);
-        end;
-        spacing = stds*3;
-        if spacing > 10
-            spacing = round(spacing);
+        % Proxy metric for data quality based on the spread (std) of EEG amplitudes.
+    % Larger values may indicate noisier data.
+    % Improvements:
+    %   1. Evenly subsample across the entire recording (not just the start).
+    %   2. Compute stds within windows and take the median (robust to bursts).
+    %   3. Use trimmed mean across channels to reduce impact of outliers.
+    data = double(EEG.data);
+    % Parameters
+    max_points   = min(5000, size(EEG.data,2));  % up to 5k points for efficiency
+    n_windows    = 5;       % number of windows to sample across recording
+    trim_percent = 5;       % % to trim when averaging channel stds
+
+    % Build evenly spaced indices across the recording
+    total_points = size(EEG.data,2);
+    idx = round(linspace(1, total_points, max_points));
+
+    % Subsample data
+    data_subset = data(:, idx);
+
+    % Divide into windows
+    win_len = floor(size(data_subset,2) / n_windows);
+    win_stds = zeros(size(data_subset,1), n_windows);
+
+    for w = 1:n_windows
+        cols = (1:win_len) + (w-1)*win_len;
+        if max(cols) <= size(data_subset,2)
+            win_stds(:,w) = std(data_subset(:, cols), 0, 2);
         end
-        quality_index=spacing;
     end
+
+    % Median across windows per channel
+    channel_stds = median(win_stds, 2, 'omitnan');
+
+    % Trimmed mean across channels
+    mean_std = trimmean(channel_stds, trim_percent);
+
+    % Derive quality index as a "spacing value"
+    quality_index = mean_std * 3;
+    end
+
 %10 radio selection response function
 function bselection(source, event)
     % Update the info display
