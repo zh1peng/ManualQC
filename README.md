@@ -62,6 +62,9 @@ Believing this tool could benefit others performing manual QC on EEG data, I rep
   - proofread documentation using LLM
   - include a Chinese documentation
   - save QC information to EEG.etc 
+- **2026-01-17**: ManualQC v1.1.8:
+  - improve recording of QC information to save epoch information, if eegdojo is used in auto reject, the remained epoch idx is updated. This is helpful to do joint modeling with behavioral data.
+  - improve the data quality function so that it is more global instead of just the fisrt 1000 data points window.
 
 ## Brief Manual
 
