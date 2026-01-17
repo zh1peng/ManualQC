@@ -1,7 +1,7 @@
 ## Manual QC
 <a href="https://imgur.com/XYa5qyJ"><img src="https://i.imgur.com/XYa5qyJ.png" title="source: imgur.com" /></a>
 
-#### Current Version: v1.1.7
+#### Current Version: v1.1.8
 #### This GUI was developed using Matlab 2016a.
 If you use this tool in your paper, please cite it as follows:
 

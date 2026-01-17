@@ -77,7 +77,7 @@
 %   - improve the data quality function so that it is more global instead of just the fisrt 1000 data points window.
 
 function manualqc()
-gui_version='v1.1.7';
+gui_version='v1.1.8';
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
 line2='EEGlab saving option will be set as save as 1 file.\n';
 line3= 'If you have any unsaved works, press Cancel to go back.';
