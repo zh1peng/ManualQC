@@ -1,7 +1,7 @@
 ## Manual QC
 <a href="https://imgur.com/XYa5qyJ"><img src="https://i.imgur.com/XYa5qyJ.png" title="source: imgur.com" /></a>
 
-#### Current Version: v1.1.8
+#### Current Version: v1.2.0
 #### This GUI was developed using Matlab 2016a.
 If you use this tool in your paper, please cite it as follows:
 
@@ -65,10 +65,7 @@ Believing this tool could benefit others performing manual QC on EEG data, I rep
 - **2026-01-17**: ManualQC v1.1.8:
   - improve recording of QC information to save epoch information, if eegdojo is used in auto reject, the remained epoch idx is updated. This is helpful to do joint modeling with behavioral data.
   - improve the data quality function so that it is more global instead of just the fisrt 1000 data points window.
-
-## Brief Manual
-
-### Step 0:
+- **2026-02-04**: ManualQC v1.2.0:
 #### Use it separately from EEGLAB:
 1. Add EEGLAB to the MATLAB path.
 2. Add ManualQC to the MATLAB path.
@@ -154,6 +151,14 @@ Save the final QC log manually by copying it or using `xlswrite` (or similar fun
 The final QC information will be saved upon completing the last file.
 
 ---
+
+### Step 7: Use RaterTool (inter-rater agreement)
+1. Run `ratertool`.
+2. Click **Load Rater Files** and select multiple rater CSV/Excel files.
+3. Set **Data Root** to the folder containing the `.set` files.
+4. Click **Compute Agreement** to view summary metrics and top disagreements.
+5. Select a dataset and click **Open Viewer** to replay epochs with rater-colored marks.
+6. Use **Channel Inspect** and **IC Inspect** for deeper inspection if needed.
 
 ## Tips on QC
 - Regularly review the QC process to ensure consistency.
@@ -251,7 +256,22 @@ The final QC information will be saved upon completing the last file.
 
 ---
 
+
+### 第7步：使用 RaterTool（评分者一致性）
+1. 运行 `ratertool`。
+2. 点击 **Load Rater Files**，选择多个评分者的 CSV/Excel 文件。
+3. 设置 **Data Root** 为包含 `.set` 数据的目录。
+4. 点击 **Compute Agreement** 查看一致性指标和分歧数据集。
+5. 选择数据集并点击 **Open Viewer** 回放并查看带有评分者颜色标记的 epoch。
+6. 如需进一步检查，使用 **Channel Inspect** 和 **IC Inspect**。
+
 ## 关于 QC 的提示
 - 定期审查 QC 流程以确保一致性。
 - 记录任何异常或偏离标准流程的情况。
 - 确保所有保存的数据集和日志已安全备份。
+
+
+
+
+
+

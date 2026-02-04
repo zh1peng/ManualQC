@@ -75,9 +75,11 @@
 % -  v1.1.8 (2026-01-17)
 %   - improve recording of QC information to save epoch information, if eegdojo is used in auto reject, the remained epoch idx is updated. This is helpful to do joint modeling with behavioral data.
 %   - improve the data quality function so that it is more global instead of just the fisrt 1000 data points window.
+% -  v1.2.0 (2026-02-04)
+%   - add RaterTool for inter-rater agreement and replay inspection
 
 function manualqc()
-gui_version='v1.1.8';
+gui_version='v1.2.0';
 line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
 line2='EEGlab saving option will be set as save as 1 file.\n';
 line3= 'If you have any unsaved works, press Cancel to go back.';
