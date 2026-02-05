@@ -1000,19 +1000,12 @@ if ~isstr(data) % If NOT a 'noui' call or a callback from uicontrols
     set(figh, 'windowbuttonmotionfcn', {@defmotion,figh,ax0,ax1,u(10),u(11),u(9)});
     set(figh, 'windowbuttonupfcn',     g.commandselect{3});
     set(figh, 'WindowKeyPressFcn',     @ratertool_eegplot_readkey);
-    set(figh, 'KeyPressFcn',           @ratertool_eegplot_readkey);
+    set(figh, 'KeyPressFcn',           []);
     try
         hControls = findobj(figh, 'Type', 'uicontrol');
         for hk = 1:numel(hControls)
             try
-                set(hControls(hk), 'KeyPressFcn', @ratertool_eegplot_readkey);
-            catch
-            end
-        end
-        hAxes = findobj(figh, 'Type', 'axes');
-        for hk = 1:numel(hAxes)
-            try
-                set(hAxes(hk), 'KeyPressFcn', @ratertool_eegplot_readkey);
+                set(hControls(hk), 'KeyPressFcn', []);
             catch
             end
         end

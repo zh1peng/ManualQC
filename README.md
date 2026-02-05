@@ -155,7 +155,9 @@ The final QC information will be saved upon completing the last file.
 ### Step 7: Use RaterTool (inter-rater agreement)
 1. Run `ratertool`.
 2. Click **Load Rater Files** and select multiple rater CSV/Excel files.
+   Example files are provided in `rater_files/` (three raters).
 3. Set **Data Root** to the folder containing the `.set` files.
+   Example `.set` files are provided in `rater_files/`.
 4. Click **Compute Agreement** to view summary metrics and top disagreements.
 5. Select a dataset and click **Open Viewer** to replay epochs with rater-colored marks.
 6. Use **Channel Inspect** and **IC Inspect** for deeper inspection if needed.
@@ -260,7 +262,9 @@ The final QC information will be saved upon completing the last file.
 ### 第7步：使用 RaterTool（评分者一致性）
 1. 运行 `ratertool`。
 2. 点击 **Load Rater Files**，选择多个评分者的 CSV/Excel 文件。
+   示例文件位于 `rater_files/`（包含三位评分者）。
 3. 设置 **Data Root** 为包含 `.set` 数据的目录。
+   示例 `.set` 文件也位于 `rater_files/`。
 4. 点击 **Compute Agreement** 查看一致性指标和分歧数据集。
 5. 选择数据集并点击 **Open Viewer** 回放并查看带有评分者颜色标记的 epoch。
 6. 如需进一步检查，使用 **Channel Inspect** 和 **IC Inspect**。
