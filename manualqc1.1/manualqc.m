@@ -80,8 +80,8 @@
 
 function manualqc()
 gui_version='v1.2.0';
-line1='Using this GUI will clear all variables in the workspace and close all figures (including eeglab).\n';
-line2='EEGlab saving option will be set as save as 1 file.\n';
+line1='ManualQC will use its own GUI state and leave the base workspace unchanged.\n';
+line2='EEGLAB save options will only be adjusted during the save step and then restored.\n';
 line3= 'If you have any unsaved works, press Cancel to go back.';
 try
 choice = questdlg2(sprintf([line1,line2,line3]),...
@@ -121,14 +121,18 @@ catch
     disp('No internet connection');
 end
     
-        
-evalin('base','clear')
-evalin('base','QC_log={};')
-evalin('base','close all')
-pop_editoptions( 'option_savetwofiles', 0);
 %% Define call back functions
 global filepath filenames n EEG tmprej ui chanlisttmp ic2remove chanliststr qc_log just_ic;
-qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Removed ICs'',''Comments'',''Rating'',''Quality Score Before'',''Quality Score After''};'); %don't want remove ' by hand.
+filepath = {};
+filenames = {};
+n = [];
+EEG = [];
+tmprej = [];
+chanlisttmp = [];
+ic2remove = [];
+chanliststr = [];
+just_ic = [];
+qc_log = {'dataset','Rejected trials','Interpolated Channels','Removed ICs','Comments','Rating','Quality Score Before','Quality Score After'};
 % 0 datadir_cmd
     function datadir_select_cmd(hObject,eventdata)
         data_path=uigetdir(pwd,'Select a search dir');
@@ -304,7 +308,7 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
     function save_cmd(hObject,eventdata)
         stars=['*****************************************************'];
         output_path=get(ui.savedir,'String');
-        if ~exist(output_path) 
+        if exist(output_path, 'dir') ~= 7
             set(ui.info2,'String','The save dir doesn''t exist.');
             warndlg2('The save dir doesn''t exist.','Manual QC');
             disp(stars);
@@ -321,6 +325,18 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         savename=strcat(prefix,filenames{n});
         EEG = eeg_checkset( EEG );
         quality_score_before=data_quality(EEG);
+        old_savetwofiles = [];
+        restore_savetwofiles = false;
+        if exist('pop_editoptions', 'file') == 2
+            try
+                eeg_options;
+                old_savetwofiles = option_savetwofiles;
+                pop_editoptions('option_savetwofiles', 0);
+                restore_savetwofiles = true;
+            catch
+                restore_savetwofiles = false;
+            end
+        end
         
         %remove ICs
         if ~isequal(just_ic,1) % in this case, ICs were selected but not removed first, then remove ICs if any.
@@ -411,12 +427,42 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         tmp_name=filenames{n};
         tmp_comments=get(ui.info6,'String');
         tmp_rating=get(ui.info7,'String');
-        
-        if ~isequal(just_ic,1)
-        tmp_info={tmp_name(1:end-4),num2str(find(tmprej==1)),chanliststr,num2str(ic2remove),tmp_comments(16:end),tmp_rating(14:end),num2str(quality_score_before),num2str(quality_score_after)};
+        if numel(tmp_comments) >= 16
+            tmp_comments_value = tmp_comments(16:end);
         else
-         tmp_info={tmp_name(1:end-4),num2str(find(tmprej==1)),chanliststr,[num2str(ic2remove),'(ICs were removed frist)'],tmp_comments(16:end),tmp_rating(14:end),num2str(quality_score_before),num2str(quality_score_after)};    
+            tmp_comments_value = '';
         end
+        if numel(tmp_rating) >= 14
+            tmp_rating_value = tmp_rating(14:end);
+        else
+            tmp_rating_value = '';
+        end
+        if isempty(rej_epoch_idx)
+            rejected_trials_str = 'None';
+        else
+            rejected_trials_str = num2str(rej_epoch_idx);
+        end
+        if isempty(chanliststr)
+            interpolated_channels_str = 'None';
+        else
+            interpolated_channels_str = chanliststr;
+        end
+        if isempty(ic2remove)
+            removed_ics_str = 'None';
+        else
+            removed_ics_str = num2str(ic2remove);
+            if isequal(just_ic,1)
+                removed_ics_str = [removed_ics_str, ' (ICs were removed first)'];
+            end
+        end
+        if isempty(tmp_comments_value)
+            tmp_comments_value = 'None';
+        end
+        if isempty(tmp_rating_value)
+            tmp_rating_value = 'None';
+        end
+        
+        tmp_info={tmp_name(1:end-4),rejected_trials_str,interpolated_channels_str,removed_ics_str,tmp_comments_value,tmp_rating_value,num2str(quality_score_before),num2str(quality_score_after)};
         
         %save info in EEG structure
         EEG.comments = pop_comments(EEG.comments,'','QC info:',1);
@@ -445,15 +491,29 @@ qc_log=eval('{''dataset'',''Rejected trials'',''Interpolated Channels'',''Remove
         else
             EEG.etc.manualqc.rejected_trials = 'None';
         end
-        EEG.etc.manualqc.interpolated_channels = ifelse(isempty(chanliststr), 'None', chanliststr);
-        EEG.etc.manualqc.removed_ics = ifelse(isempty(ic2remove), 'None', ...
-            [num2str(ic2remove), '(ICs were removed first)']);
-        EEG.etc.manualqc.comments = ifelse(isempty(tmp_comments), 'None', tmp_comments(16:end));
-        EEG.etc.manualqc.rating = ifelse(isempty(tmp_rating), 'None', tmp_rating(14:end));
+        EEG.etc.manualqc.interpolated_channels = interpolated_channels_str;
+        EEG.etc.manualqc.removed_ics = removed_ics_str;
+        EEG.etc.manualqc.comments = tmp_comments_value;
+        EEG.etc.manualqc.rating = tmp_rating_value;
         EEG.etc.manualqc.quality_before = ifelse(isempty(quality_score_before), 'None', num2str(quality_score_before));
         EEG.etc.manualqc.quality_after = ifelse(isempty(quality_score_after), 'None', num2str(quality_score_after));
-                
-        EEG = pop_saveset( EEG, 'filename',savename,'filepath',output_path);
+        try
+            EEG = pop_saveset( EEG, 'filename',savename,'filepath',output_path);
+        catch save_me
+            if restore_savetwofiles
+                try
+                    pop_editoptions('option_savetwofiles', old_savetwofiles);
+                catch
+                end
+            end
+            rethrow(save_me);
+        end
+        if restore_savetwofiles
+            try
+                pop_editoptions('option_savetwofiles', old_savetwofiles);
+            catch
+            end
+        end
         %save tmp results-
         qc_info_temp_bak=['qc_info_bak_on_',datestr(now,'HH.MM'),'.csv'];
         cell2csv(fullfile(output_path,qc_info_temp_bak),qc_log);
@@ -568,13 +628,14 @@ end
     %   2. Compute stds within windows and take the median (robust to bursts).
     %   3. Use trimmed mean across channels to reduce impact of outliers.
     data = double(EEG.data);
+    data = reshape(data, size(data, 1), []);
     % Parameters
-    max_points   = min(5000, size(EEG.data,2));  % up to 5k points for efficiency
+    max_points   = min(5000, size(data,2));  % up to 5k points for efficiency
     n_windows    = 5;       % number of windows to sample across recording
     trim_percent = 5;       % % to trim when averaging channel stds
 
     % Build evenly spaced indices across the recording
-    total_points = size(EEG.data,2);
+    total_points = size(data,2);
     idx = round(linspace(1, total_points, max_points));
 
     % Subsample data
@@ -582,6 +643,12 @@ end
 
     % Divide into windows
     win_len = floor(size(data_subset,2) / n_windows);
+    if win_len < 1
+        channel_stds = std(data_subset, 0, 2);
+        mean_std = trimmean(channel_stds, trim_percent);
+        quality_index = mean_std * 3;
+        return
+    end
     win_stds = zeros(size(data_subset,1), n_windows);
 
     for w = 1:n_windows
