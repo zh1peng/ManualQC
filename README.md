@@ -103,7 +103,10 @@ If the dataset is loaded successfully:
 ### Step 3: Check epochs, channels, and ICs
 #### Exploring Epochs
 Inspect epochs and mark the bad ones:
-- **Mark**: Mark selected epochs as bad.  
+- Reopening the plot restores confirmed bad-epoch highlights. Click an epoch to select or deselect it.
+- **Clear**: Clear all selections in the current plot; click **Mark** to confirm.
+- **Cancel**: Discard changes in the current plot and keep the previously confirmed selections.
+- **Mark**: Confirm the complete current selection, including an empty selection.
   Bad epochs will be listed in the information panel and removed upon saving the dataset.
 
 #### Select Channels (Ctrl/Shift for multiple selections)
@@ -113,6 +116,7 @@ Inspect epochs and mark the bad ones:
   Bad channels will be listed in the information panel and interpolated upon saving the dataset.
 
 #### Select ICs
+- All available ICs are displayed, with up to 35 ICs per window. The count follows the ICA decomposition, not the channel count.
 - Click the label above the topoplots.
 - Mark ICs as **Accept** or **Reject**:  
   - Rejected ICs are labeled in red.
@@ -209,7 +213,10 @@ The final QC information will be saved upon completing the last file.
 ### 第3步：检查 epochs、通道和 ICs
 #### 查看 Epochs
 检查 epochs 并标记坏的：
-- **Mark**：将选定的 epochs 标记为坏的。  
+- 重新打开图窗时，会恢复已确认的坏 epoch 高亮。点击 epoch 可选中或取消选中。
+- **Clear**：清除当前图窗的全部选择；点击 **Mark** 后生效。
+- **Cancel**：放弃当前图窗中的修改，保留之前已确认的选择。
+- **Mark**：确认当前的完整选择，也可以确认空选择。
   坏的 epochs 将显示在信息面板中，并在保存数据集时移除。
 
 #### 选择通道（按住 Ctrl/Shift 可多选）
@@ -219,6 +226,7 @@ The final QC information will be saved upon completing the last file.
   坏通道将显示在信息面板中，并在保存数据集时进行插值。
 
 #### 选择 ICs
+- 显示所有可用 IC，每个窗口最多 35 个。数量由实际 ICA 分解决定，而不是通道数。
 - 点击 topoplots 上方的标签。
 - 将 IC 标记为 **Accept** 或 **Reject**：  
   - 被拒绝的 IC 用红色标记。

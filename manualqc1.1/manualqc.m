@@ -267,10 +267,15 @@ qc_log = {'dataset','Rejected trials','Interpolated Channels','Removed ICs','Com
     end
 % 3 scroll_cmd
     function scroll_cmd(hObject,eventdata)
-        cmd='global EEG tmprej ui; if isempty(TMPREJ), warndlg2(''no epoch is selected'',''Manual QC''); clear TMPREJ; else [tmprej, tmprejE] = eegplot2trial(TMPREJ,EEG.pnts, EEG.trials, [1 1 0.783], []); set(ui.info3,''String'',[''Bad epochs: '', num2str(find(tmprej==1)), ''  [Sum: '', num2str(sum(tmprej)), '']  ('', num2str((sum(tmprej)./EEG.trials)*100),''%)'']); clear tmprejE TMPREJ;end';
-        %          cmd=' if isempty(TMPREJ), warndlg(''no epoch is selected''); else [tmprej, tmprejE] = eegplot2trial(TMPREJ,EEG.pnts, EEG.trials, [1 1 0.783], []); end';
+        rejmask = false(1, EEG.trials);
+        if ~isempty(tmprej), rejmask = tmprej; end;
+        winrej = trial2eegplot(rejmask, zeros(EEG.nbchan, EEG.trials), EEG.pnts, [1 1 0.783]);
+        cmd=['global EEG tmprej ui; ' ...
+            'if isempty(TMPREJ), tmprej = []; ' ...
+            'else [tmprej, tmprejE] = eegplot2trial(TMPREJ,EEG.pnts, EEG.trials, [1 1 0.783], []); end; ' ...
+            'set(ui.info3,''String'',[''Bad epochs: '', num2str(find(tmprej==1)), ''  [Sum: '', num2str(sum(tmprej)), '']  ('', num2str((sum(tmprej)./EEG.trials)*100),''%)'']); clear tmprejE TMPREJ;'];
         modified_eegplot( EEG.data, 'srate', EEG.srate, 'title', 'eegplot()', ...
-            'limits', [EEG.xmin EEG.xmax]*1000,'eloc_file',EEG.chanlocs,'events',EEG.event,'wincolor' ,[1 1 0.783],'command',cmd,'butlabel','Mark')
+            'limits', [EEG.xmin EEG.xmax]*1000,'eloc_file',EEG.chanlocs,'events',EEG.event,'wincolor' ,[1 1 0.783],'winrej',winrej,'command',cmd,'butlabel','Mark')
         %             bad_trials=
         %             set(ui.info3,'String',['Bad epochs: ', num2str(find(tmprej==1))]);
     end
@@ -288,7 +293,12 @@ qc_log = {'dataset','Rejected trials','Interpolated Channels','Removed ICs','Com
     end
 % 5 ica_cmd ---to do modify the function
     function ica_cmd(hObject,eventdata)
-        [EEG]=modified_pop_selectcomps( EEG, [1:35]);
+        ncomps = size(EEG.icaweights, 1);
+        if ncomps == 0
+            warndlg2('No ICA components are available in this dataset.', 'Manual QC');
+            return;
+        end
+        [EEG]=modified_pop_selectcomps( EEG, 1:ncomps);
         EEG = eeg_checkset( EEG );
         %test set(ui.info3,'String',['Bad epochs: ', num2str(1:200)])
         % set(ui.info2,'String',['Bad epochs: ', num2str(find(tmprej==1))])
@@ -421,6 +431,14 @@ qc_log = {'dataset','Rejected trials','Interpolated Channels','Removed ICs','Com
 
             
         
+        % Interpolate all selected channels together, using only good channels.
+        if ~isempty(chanlisttmp)
+            EEG = pop_interp(EEG, chanlisttmp, 'spherical');
+            EEG = eeg_checkset(EEG);
+            disp(['Interpolated channels (spherical): ', num2str(chanlisttmp)]);
+            set(ui.info4,'String',['Interpolated channels (spherical): ',chanliststr]);
+        end
+
         %calculate data quality after QC
         quality_score_after=data_quality(EEG);
         % wrap QC info
@@ -1604,6 +1622,12 @@ if ~isstr(data) % If NOT a 'noui' call or a callback from uicontrols
         [	'g = get(gcbf, ''userdata'');' ...
         'if g.children, delete(g.children); end;' ...
         'close(gcbf);'] );
+
+    uicontrol('Parent',figh, 'Units','normalized', ...
+        'Position',[0.8 0.08 0.14 0.04], 'Tag','ClearEpochs', ...
+        'String','Clear', 'TooltipString','Clear all epoch selections in this window', ...
+        'Callback',['g = get(gcbf,''userdata''); g.winrej = []; ' ...
+        'set(gcbf,''userdata'',g); eegplot(''drawp'',0); clear g;']);
     
     if ~isempty(g.events)
         u(17) = uicontrol('Parent',figh, ...
@@ -3262,18 +3286,19 @@ end;
 fprintf('Drawing figure...\n');
 currentfigtag = ['selcomp' num2str(rand)]; % generate a random figure tag
 
+if isempty(EEG.reject.gcompreject)
+    EEG.reject.gcompreject = zeros(1, size(EEG.icaweights,1));
+end;
+
 if length(compnum) > PLOTPERFIG
     for index = 1:PLOTPERFIG:length(compnum)
-        modified_pop_selectcomps(EEG, compnum([index:min(length(compnum),index+PLOTPERFIG-1)]));
+        EEG = modified_pop_selectcomps(EEG, compnum([index:min(length(compnum),index+PLOTPERFIG-1)]));
     end;
     
     com = [ 'pop_selectcomps(' inputname(1) ', ' vararg2str(compnum) ');' ];
     return;
 end;
 
-if isempty(EEG.reject.gcompreject)
-    EEG.reject.gcompreject = zeros( size(EEG.icawinv,2));
-end;
 try, icadefs;
 catch,
     BACKCOLOR = [0.8 0.8 0.8];
