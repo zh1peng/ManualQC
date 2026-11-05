@@ -166,6 +166,21 @@ The final QC information will be saved upon completing the last file.
 5. Select a dataset and click **Open Viewer** to replay epochs with rater-colored marks.
 6. Use **Channel Inspect** and **IC Inspect** for deeper inspection if needed.
 
+RaterTool reports `N/A: <reason>` when a statistic cannot be estimated, rather than substituting a score:
+
+- Kappa requires **Use EEG metadata for kappa** and the common, pre-manual-QC `.set` files. Unknown channels and out-of-range indices invalidate kappa instead of being silently dropped. When `EEG.etc.EEGdojo.TrialID` exists, rejected trial IDs are mapped through it.
+- If every rater assigns every item to the same category, kappa is undefined because expected agreement is 1. Matching empty rejection sets still have Jaccard/F1 = 1 by convention.
+- ICC(2,1) uses only datasets with finite quality scores from every rater, reports that sample size, and requires at least two complete datasets. Identical scores across all datasets and raters cannot yield an estimable ICC.
+- Datasets with fewer than two raters are excluded from agreement summaries and the disagreement list. Gray heatmap cells indicate no shared datasets; diagonal cells show self-agreement.
+- Pairwise precision uses Rater A's set as denominator and recall uses Rater B's; only Jaccard and F1 are symmetric.
+
+Regression checks (with EEGLAB and `manualqc1.1` on the MATLAB path):
+
+```matlab
+results = runtests('tests/test_ratertool.m');
+assertSuccess(results);
+```
+
 ## Tips on QC
 - Regularly review the QC process to ensure consistency.
 - Document any anomalies or deviations from standard procedures.
@@ -276,6 +291,14 @@ The final QC information will be saved upon completing the last file.
 4. 点击 **Compute Agreement** 查看一致性指标和分歧数据集。
 5. 选择数据集并点击 **Open Viewer** 回放并查看带有评分者颜色标记的 epoch。
 6. 如需进一步检查，使用 **Channel Inspect** 和 **IC Inspect**。
+
+无法估计的统计量显示为 `N/A: 原因`，不会替换成 0 或 1：
+
+- κ 需要勾选 **Use EEG metadata for kappa**，并提供各评分者共同使用的、手动 QC 前的 `.set`。未知通道或越界索引会使 κ 不可计算，不会被静默忽略；存在 `EEG.etc.EEGdojo.TrialID` 时按原始 trial ID 映射。
+- 所有评分者对所有条目都使用同一类别时，κ 无定义；双方均未标记坏条目时，Jaccard/F1 按约定为 1。
+- ICC(2,1) 仅使用所有评分者均有有限质量分数的数据集，并显示有效样本数；至少需要两个完整数据集，所有分数相同时不可估计。
+- 少于两位评分者的数据集不进入一致性汇总和分歧排序。热图灰色表示没有共同数据集，对角线表示自身一致性。
+- 成对 precision 的分母是评分者 A 的标记数，recall 的分母是评分者 B 的标记数；Jaccard 和 F1 是对称指标。
 
 ## 关于 QC 的提示
 - 定期审查 QC 流程以确保一致性。
