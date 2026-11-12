@@ -1,315 +1,49 @@
-## Manual QC
-<a href="https://imgur.com/XYa5qyJ"><img src="https://i.imgur.com/XYa5qyJ.png" title="source: imgur.com" /></a>
+<img src="website/public/manualqc.svg" alt="ManualQC logo" width="72" height="72">
+
+# ManualQC
 
 #### Current Version: v1.3.0
-#### This GUI was developed using Matlab 2016a.
-If you use this tool in your paper, please cite it as follows:
 
-"Additionally, bad epochs, channels, and independent components (ICs) were manually checked and excluded using ManualQC (https://github.com/zh1peng/ManualQC)."
+ManualQC is a MATLAB toolbox for reviewing epoched EEG in EEGLAB. A reviewer can mark epochs for rejection, select channels for spherical interpolation, inspect ICA components, and save the cleaned recording with a record of those decisions. The companion **RaterTool** compares independent reviewers and replays disagreements against the original signal.
 
-### Brief Introduction
-While numerous algorithms have been developed for automatically detecting and removing EEG artifacts, manual intervention remains essential in many cases. In our lab, all EEG datasets undergo rigorous manual quality control (QC). When I began performing QC on EEG data back in 2017, the process involved navigating multiple menus to load datasets, remove bad epochs, interpolate bad channels, remove independent components (ICs), and save datasets. Additionally, I manually recorded this information and added comments as needed. Recognizing the inefficiency of this workflow and the lack of a streamlined solution within EEGLAB, I integrated QC-related functions from EEGLAB into a single graphical user interface (GUI). The in-house version of this GUI, available (here) [https://github.com/zh1peng/EEGQC_GUI], has been utilized in our lab for over a year and has significantly improved the efficiency of our QC process.
+**[Illustrated handbook](https://zh1peng.github.io/ManualQC/)** · **[中文教程](https://zh1peng.github.io/ManualQC/zh/)** · [Download v1.3.0](https://github.com/zh1peng/ManualQC/archive/refs/tags/v1.3.0.zip) · [Release notes](CHANGELOG.md)
 
-Believing this tool could benefit others performing manual QC on EEG data, I reprogrammed the QC GUI with the following improvements:
+## First session
 
-1. Advanced GUI-building code, consolidating all functionalities into a single file.
-2. An improved interface designed to resemble EEGLAB for familiarity and ease of use.
-3. Customized EEGLAB functions to streamline the QC process.
-
-### Release Notes:
-- **2017-10-09**: ManualQC v1.0 Released.
-- **2017-10-10**: 
-  - Minor bug fixed.
-  - Typo corrected.
-- **2017-10-24**: ManualQC v1.1:
-  - Added a new button allowing users to remove ICs first.
-  - Integrated as an EEGLAB plugin.
-  - Fixed the save bug.
-  - Added functionality to calculate the number of trials marked as bad.
-- **2017-10-28**: ManualQC v1.1.1:
-  - Fixed `xlswrite` error on Linux/Mac.
-  - Added a button to plot IC activations, providing information on which ICs to remove.
-  - Improved the display of search results.
-- **2017-11-11**: ManualQC v1.1.2:
-  - Added a version check during GUI initiation.
-- **2017-11-13**:
-  - Added `cell2csv` functionality.
-  - Fixed a save error.
-- **2017-11-27**: ManualQC v1.1.3:
-  - Fixed a minor bug where functions from EEGLAB could not be found.
-  - Disabled the 'Load' button after clicking.
-  - Disabled the 'Remove IC first' button after saving.
-- **2017-12-11**:
-  - Fixed a minor bug in GUI launch (version check and EEGLAB path warning).
-  - Changed the order of IC removal to remove ICs first when saving datasets.
-  - Fixed an error when loading without EEGLAB in the path.
-- **2018-01-16**: ManualQC v1.1.4:
-  - Changed EEGLAB options to save datasets as a single file instead of two.  
-    *(Note: If your lab uses the two-file setting, remove this line: `pop_editoptions('option_savetwofiles', 0);`)*
-- **2018-04-20**: ManualQC v1.1.5:
-  - Improved dataset handling post-save.
-  - Displayed number of ICs changed to a default of 35.
-- **2024-02-21**: ManualQC v1.1.6:
-  - Added functionality to load the log file if saved with the same name as the dataset.
-  - Updated QC information to be dumped into the log file if it exists.
-- **2025-01-09**: ManualQC v1.1.7:
-  - Use fixed output path
-  - add re-check button on the QC rating
-  - automatically add prefix when QC rating is selected
-  - give warning if QC rating is not selected
-  - remove logFile stuff
-  - improve warning dialogus
-  - proofread documentation using LLM
-  - include a Chinese documentation
-  - save QC information to EEG.etc 
-- **2026-01-17**: ManualQC v1.1.8:
-  - improve recording of QC information to save epoch information, if eegdojo is used in auto reject, the remained epoch idx is updated. This is helpful to do joint modeling with behavioral data.
-  - improve the data quality function so that it is more global instead of just the fisrt 1000 data points window.
-- **2026-02-04**: ManualQC v1.2.0:
-  - Added RaterTool for inter-rater agreement and replay.
-- **2026-11-12**: ManualQC v1.3.0:
-  - Restored spherical interpolation when saving selected bad channels. Affected v1.2.0 logs recorded the selection even when interpolation did not run; updating the software does not repair previously saved datasets.
-  - Reopen, revise or clear epoch selections before saving. IC inspection now follows the actual decomposition size.
-  - Fixed RaterTool navigation and added a per-rater replay table. Agreement reports explain undefined statistics and validate rejection indices against the EEG metadata.
-
-#### Use it separately from EEGLAB:
-1. Add EEGLAB to the MATLAB path.
-2. Add ManualQC to the MATLAB path.
-3. Run `ManualQC`.
-
-#### Use it as an EEGLAB plugin:
-1. Download it from the plugin manager of EEGLAB [if available], or download the `ManualQC1.1` folder into the `plugins` folder in EEGLAB.
-2. Load any dataset, and the tool entry will appear in the "Tools" menu.
-
----
-
-### Step 1: Search datasets using a regular expression
-1. Enter a regular expression. An example is shown in the info panel. Type `doc regexp` in MATLAB for more examples.  
-   - *(Our lab uses `^Final\w*.set` since 'Final' is added as a prefix to pre-processed data.)*
-2. Paste or select the data directory.
-3. Click **Search**.
-
-If any file matching the regular expression is found in the data directory:
-- The **Load** button will be enabled.
-- The index of the file to load will be updated to `1`.
-- The total number of files found will be displayed.
-
----
-
-### Step 2: Load a dataset
-**This only works when loading a `.set` file and the dataset index is correct.**
-
-If the dataset is loaded successfully:
-- Basic information about the dataset will be displayed.  
-  *(Note: Data quality is calculated as the initial scale when using the epoch scrolling function. This is a useful indicator of data quality.)*
-- The **Epochs/Channels/ICs** button will be enabled.
-
----
-
-### Step 3: Check epochs, channels, and ICs
-#### Exploring Epochs
-Inspect epochs and mark the bad ones:
-- Reopening the plot restores confirmed bad-epoch highlights. Click an epoch to select or deselect it.
-- **Clear**: Clear all selections in the current plot; click **Mark** to confirm.
-- **Cancel**: Discard changes in the current plot and keep the previously confirmed selections.
-- **Mark**: Confirm the complete current selection, including an empty selection.
-  Bad epochs will be listed in the information panel and removed upon saving the dataset.
-
-#### Select Channels (Ctrl/Shift for multiple selections)
-- **Clear**: Clear previously marked channels.
-- **Mark**: Mark selected channels as bad channels.
-- **Property**: Plot the properties of selected channels.  
-  Bad channels will be listed in the information panel and interpolated upon saving the dataset.
-
-#### Select ICs
-- All available ICs are displayed, with up to 35 ICs per window. The count follows the ICA decomposition, not the channel count.
-- Click the label above the topoplots.
-- Mark ICs as **Accept** or **Reject**:  
-  - Rejected ICs are labeled in red.
-  - Accepted ICs are labeled in green.
-- **Selected ICs**: Update the list of selected ICs for testing removal.
-- **Test Removal**: Compare data before and after removing selected ICs.
-- **Test Averaged Removal**: Compare averaged data before and after removing selected ICs.
-- **Clear All Selections**: Clear IC selections and reopen this window.
-- **Ok**: Confirm IC selections for removal.  
-  Selected ICs will be listed in the information panel and removed upon saving the dataset.
-
-#### Remove ICs First
-In cases where removing bad ICs first could retain more trials, use the **Remove Bad ICs First** button before proceeding with the rest of the QC.
-
----
-
-### Step 4: Add user comments and rate the dataset
-Add comments and rate the dataset, such as:
-- "A lot of alpha activity."
-- "Significant movement or muscle/EMG artifacts."
-- "Over 20% of epochs removed -> mark as 'caution' for 'data usable?'"
-- "Over 40-50% of epochs removed -> mark as 'bad' for 'data not usable?'"
-
-Click **Add** to update comments.
-
----
-
-### Step 5: Save the manually QCed dataset
-- QC information will be updated in the `QC_log` within the workspace.
-- Temporary QC information will be saved as `qc_info_bak_on_HH.MM` in the save path.
-
----
-
-### Step 6: Save the `QC_log`
-Save the final QC log manually by copying it or using `xlswrite` (or similar functions).  
-The final QC information will be saved upon completing the last file.
-
----
-
-### Step 7: Use RaterTool (inter-rater agreement)
-1. Run `ratertool`.
-2. Click **Load Rater Files** and select multiple rater CSV/Excel files.
-   Example files are provided in `rater_files/` (three raters).
-3. Set **Data Root** to the folder containing the `.set` files.
-   Example `.set` files are provided in `rater_files/`.
-4. Click **Compute Agreement** to view summary metrics and top disagreements.
-5. Select a dataset and click **Open Viewer** to replay epochs with rater-colored marks.
-6. Use **Channel Inspect** and **IC Inspect** for deeper inspection if needed.
-
-RaterTool reports `N/A: <reason>` when a statistic cannot be estimated, rather than substituting a score:
-
-- Kappa requires **Use EEG metadata for kappa** and the common, pre-manual-QC `.set` files. Unknown channels and out-of-range indices invalidate kappa instead of being silently dropped. When `EEG.etc.EEGdojo.TrialID` exists, rejected trial IDs are mapped through it.
-- If every rater assigns every item to the same category, kappa is undefined because expected agreement is 1. Matching empty rejection sets still have Jaccard/F1 = 1 by convention.
-- ICC(2,1) uses only datasets with finite quality scores from every rater, reports that sample size, and requires at least two complete datasets. Identical scores across all datasets and raters cannot yield an estimable ICC.
-- Datasets with fewer than two raters are excluded from agreement summaries and the disagreement list. Gray heatmap cells indicate no shared datasets; diagonal cells show self-agreement.
-- Pairwise precision uses Rater A's set as denominator and recall uses Rater B's; only Jaccard and F1 are symmetric.
-
-Regression checks (with EEGLAB and `manualqc1.1` on the MATLAB path):
+Start [EEGLAB](https://eeglab.org/) in MATLAB. With the extracted repository as your current folder, run:
 
 ```matlab
-results = runtests('tests/test_ratertool.m');
-assertSuccess(results);
+addpath(fullfile(pwd,'manualqc1.1'))
+mkdir('qc_output')
+manualqc
 ```
 
-## Tips on QC
-- Regularly review the QC process to ensure consistency.
-- Document any anomalies or deviations from standard procedures.
-- Ensure all saved datasets and logs are securely backed up.
+1. Set the search directory to `rater_files`, enter `^sub-165_task-mid_run-01_eeg_prep\.set$`, click **Search**, then **Load**. The sample has 327 epochs, 59 channels and 52 ICs.
+2. Inspect **epochs**, **Channels** and **ICs**. In the epoch viewer, **Mark** confirms the current selection; **Clear → Mark** confirms an empty selection; **Cancel** retains the selection from before opening.
+3. Add a comment, choose a rating and set the output directory to `qc_output`. **Save** writes the processed dataset and QC log. Reopen the output to inspect `EEG.etc.manualqc`.
 
+<img src="website/public/figures/workbench.png" alt="ManualQC workbench with the bundled sample loaded" width="720">
 
+**Upgrading from v1.2.0:** affected outputs could list bad channels without actually interpolating their samples. Installing v1.3.0 does not repair old files. Reprocess from the original pre-QC recording; see [Save and verify](https://zh1peng.github.io/ManualQC/guide/save.html).
 
-## 简要手册
+## Compare reviewers
 
-### 第0步：
-#### 独立使用 ManualQC（不作为 EEGLAB 插件）：
-1. 将 EEGLAB 添加到 MATLAB 路径中。
-2. 将 ManualQC 添加到 MATLAB 路径中。
-3. 运行 `ManualQC`。
+Run `ratertool` and select the three example rater files in [rater_files](rater_files/). Use that folder as the data root, compute agreement, and replay a shared recording. Use the **same pre-manual-QC dataset** for all raters. The [RaterTool walkthrough](https://zh1peng.github.io/ManualQC/guide/raters.html) and [agreement reference](https://zh1peng.github.io/ManualQC/guide/agreement.html) explain what a score measures and when it is undefined.
 
-#### 作为 EEGLAB 插件使用：
-1. 从 EEGLAB 的插件管理器中下载（如果可用），或者将 `ManualQC1.1` 文件夹下载到 EEGLAB 的 `plugins` 文件夹中。
-2. 加载任意数据集，工具条目将出现在 "Tools" 菜单中。
+## Reporting use
 
----
+Report the toolbox version, the input preprocessing and your lab's rejection criteria. For example: “Epoched EEG was reviewed with ManualQC v1.3.0 (Zhipeng Cao; https://github.com/zh1peng/ManualQC).” Describe which of epoch rejection, channel interpolation and IC removal you actually performed. [License](LICENSE).
 
-### 第1步：使用正则表达式搜索数据集
-1. 输入一个正则表达式。信息面板中显示了一个示例。可以在 MATLAB 中键入 `doc regexp` 查看更多示例。  
-   - *（我们实验室使用 `^Final\w*.set`，因为 'Final' 是添加到预处理数据的前缀。）*
-2. 粘贴或选择数据目录。
-3. 点击 **Search**。
+## Develop locally
 
-如果在数据目录中找到匹配正则表达式的文件：
-- **Load** 按钮将被启用。
-- 要加载的文件索引将更新为 `1`。
-- 将显示找到的文件总数。
+The MATLAB toolbox is in `manualqc1.1/`. Run the [ManualQC regression checks](tests/run_manualqc_regression.m) and [RaterTool tests](tests/test_ratertool.m) in MATLAB with EEGLAB available. The website is separate; Node.js is not required to use the toolbox.
 
----
-
-### 第2步：加载数据集
-**仅在加载 `.set` 文件且数据集索引正确时可用。**
-
-如果数据集成功加载：
-- 数据集的基本信息将显示出来。  
-  *(注意：数据质量在使用 epoch 滚动功能时作为初始指标计算。这是一个有用的数据质量指标。)*
-- **Epochs/Channels/ICs** 按钮将被启用。
-
----
-
-### 第3步：检查 epochs、通道和 ICs
-#### 查看 Epochs
-检查 epochs 并标记坏的：
-- 重新打开图窗时，会恢复已确认的坏 epoch 高亮。点击 epoch 可选中或取消选中。
-- **Clear**：清除当前图窗的全部选择；点击 **Mark** 后生效。
-- **Cancel**：放弃当前图窗中的修改，保留之前已确认的选择。
-- **Mark**：确认当前的完整选择，也可以确认空选择。
-  坏的 epochs 将显示在信息面板中，并在保存数据集时移除。
-
-#### 选择通道（按住 Ctrl/Shift 可多选）
-- **Clear**：清除先前标记的通道。
-- **Mark**：将选定的通道标记为坏通道。
-- **Property**：绘制选定通道的属性图。  
-  坏通道将显示在信息面板中，并在保存数据集时进行插值。
-
-#### 选择 ICs
-- 显示所有可用 IC，每个窗口最多 35 个。数量由实际 ICA 分解决定，而不是通道数。
-- 点击 topoplots 上方的标签。
-- 将 IC 标记为 **Accept** 或 **Reject**：  
-  - 被拒绝的 IC 用红色标记。
-  - 被接受的 IC 用绿色标记。
-- **Selected ICs**：更新选定的 IC 列表以测试移除。
-- **Test Removal**：比较移除选定 IC 前后的数据。
-- **Test Averaged Removal**：比较移除选定 IC 前后的平均数据。
-- **Clear All Selections**：清除所有 IC 选择并重新打开此窗口。
-- **Ok**：确认移除的 IC 选择。  
-  选定的 IC 将显示在信息面板中，并在保存数据集时移除。
-
-#### 优先移除 ICs
-如果优先移除坏 IC 可以保留更多的试验，请在继续执行其余 QC 之前使用 **Remove Bad ICs First** 按钮。
-
----
-
-### 第4步：添加用户评论并对数据集进行评分
-添加评论并对数据集评分，例如：
-- "大量 alpha 活动。"
-- "显著的运动或肌肉/EMG 伪影。"
-- "移除了超过 20% 的 epochs -> 标记为 'caution'（数据可用？）"
-- "移除了超过 40-50% 的 epochs -> 标记为 'bad'（数据不可用？）"
-
-点击 **Add** 更新评论。
-
----
-
-### 第5步：保存手动 QC 的数据集
-- QC 信息将更新到工作区中的 `QC_log`。
-- 临时 QC 信息将保存为 `qc_info_bak_on_HH.MM`，位于保存路径中。
-
----
-
-### 第6步：保存 `QC_log`
-手动复制或使用 `xlswrite`（或类似功能）保存最终的 QC 日志。  
-在完成最后一个文件后，将保存最终的 QC 信息。
-
----
-
-
-### 第7步：使用 RaterTool（评分者一致性）
-1. 运行 `ratertool`。
-2. 点击 **Load Rater Files**，选择多个评分者的 CSV/Excel 文件。
-   示例文件位于 `rater_files/`（包含三位评分者）。
-3. 设置 **Data Root** 为包含 `.set` 数据的目录。
-   示例 `.set` 文件也位于 `rater_files/`。
-4. 点击 **Compute Agreement** 查看一致性指标和分歧数据集。
-5. 选择数据集并点击 **Open Viewer** 回放并查看带有评分者颜色标记的 epoch。
-6. 如需进一步检查，使用 **Channel Inspect** 和 **IC Inspect**。
-
-无法估计的统计量显示为 `N/A: 原因`，不会替换成 0 或 1：
-
-- κ 需要勾选 **Use EEG metadata for kappa**，并提供各评分者共同使用的、手动 QC 前的 `.set`。未知通道或越界索引会使 κ 不可计算，不会被静默忽略；存在 `EEG.etc.EEGdojo.TrialID` 时按原始 trial ID 映射。
-- 所有评分者对所有条目都使用同一类别时，κ 无定义；双方均未标记坏条目时，Jaccard/F1 按约定为 1。
-- ICC(2,1) 仅使用所有评分者均有有限质量分数的数据集，并显示有效样本数；至少需要两个完整数据集，所有分数相同时不可估计。
-- 少于两位评分者的数据集不进入一致性汇总和分歧排序。热图灰色表示没有共同数据集，对角线表示自身一致性。
-- 成对 precision 的分母是评分者 A 的标记数，recall 的分母是评分者 B 的标记数；Jaccard 和 F1 是对称指标。
-
-## 关于 QC 的提示
-- 定期审查 QC 流程以确保一致性。
-- 记录任何异常或偏离标准流程的情况。
-- 确保所有保存的数据集和日志已安全备份。
+```sh
+cd website
+npm ci
+npm run dev
+# npm run build produces the static handbook in .vitepress/dist/
+```
 
 
 

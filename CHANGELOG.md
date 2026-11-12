@@ -1,0 +1,55 @@
+# Release Notes
+- **2017-10-09**: ManualQC v1.0 Released.
+- **2017-10-10**:
+  - Minor bug fixed.
+  - Typo corrected.
+- **2017-10-24**: ManualQC v1.1:
+  - Added a new button allowing users to remove ICs first.
+  - Integrated as an EEGLAB plugin.
+  - Fixed the save bug.
+  - Added functionality to calculate the number of trials marked as bad.
+- **2017-10-28**: ManualQC v1.1.1:
+  - Fixed `xlswrite` error on Linux/Mac.
+  - Added a button to plot IC activations, providing information on which ICs to remove.
+  - Improved the display of search results.
+- **2017-11-11**: ManualQC v1.1.2:
+  - Added a version check during GUI initiation.
+- **2017-11-13**:
+  - Added `cell2csv` functionality.
+  - Fixed a save error.
+- **2017-11-27**: ManualQC v1.1.3:
+  - Fixed a minor bug where functions from EEGLAB could not be found.
+  - Disabled the 'Load' button after clicking.
+  - Disabled the 'Remove IC first' button after saving.
+- **2017-12-11**:
+  - Fixed a minor bug in GUI launch (version check and EEGLAB path warning).
+  - Changed the order of IC removal to remove ICs first when saving datasets.
+  - Fixed an error when loading without EEGLAB in the path.
+- **2018-01-16**: ManualQC v1.1.4:
+  - Changed EEGLAB options to save datasets as a single file instead of two.
+    *(Note: If your lab uses the two-file setting, remove this line: `pop_editoptions('option_savetwofiles', 0);`)*
+- **2018-04-20**: ManualQC v1.1.5:
+  - Improved dataset handling post-save.
+  - Displayed number of ICs changed to a default of 35.
+- **2024-02-21**: ManualQC v1.1.6:
+  - Added functionality to load the log file if saved with the same name as the dataset.
+  - Updated QC information to be dumped into the log file if it exists.
+- **2025-01-09**: ManualQC v1.1.7:
+  - Use fixed output path
+  - add re-check button on the QC rating
+  - automatically add prefix when QC rating is selected
+  - give warning if QC rating is not selected
+  - remove logFile stuff
+  - improve warning dialogus
+  - proofread documentation using LLM
+  - include a Chinese documentation
+  - save QC information to EEG.etc
+- **2026-01-17**: ManualQC v1.1.8:
+  - improve recording of QC information to save epoch information, if eegdojo is used in auto reject, the remained epoch idx is updated. This is helpful to do joint modeling with behavioral data.
+  - improve the data quality function so that it is more global instead of just the fisrt 1000 data points window.
+- **2026-02-04**: ManualQC v1.2.0:
+  - Added RaterTool for inter-rater agreement and replay.
+- **2026-11-12**: ManualQC v1.3.0:
+  - Restored spherical interpolation when saving selected bad channels. Affected v1.2.0 logs recorded the selection even when interpolation did not run; updating the software does not repair previously saved datasets.
+  - Reopen, revise or clear epoch selections before saving. IC inspection now follows the actual decomposition size.
+  - Fixed RaterTool navigation and added a per-rater replay table. Agreement reports explain undefined statistics and validate rejection indices against the EEG metadata.

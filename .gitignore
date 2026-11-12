@@ -1,1 +1,4 @@
 eeglab test/
+website/node_modules/
+website/.vitepress/cache/
+website/.vitepress/dist/

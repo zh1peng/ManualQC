@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="t">
+  <title id="t">ManualQC: an EEG trace inside a Q</title>
+  <circle cx="28" cy="28" r="21" fill="#eef2ff" stroke="#263777" stroke-width="7"/>
+  <path d="m42 43 13 13" stroke="#263777" stroke-width="8" stroke-linecap="round"/>
+  <path d="M10 30h9l4-8 6 16 6-22 4 14h8" fill="none" stroke="#00776e" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
