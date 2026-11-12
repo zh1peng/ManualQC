@@ -23,7 +23,3 @@ Compare the number of saved epochs with the input count minus your confirmed rej
 | `EEG.etc.manualqc` in the saved dataset | Inspect the decisions that apply to this file. Distinguish `rejected_epochs_current` from `rejected_trials_id`; check `rejected_id_space` before joining to behavioral data. |
 | `QC_log` in the MATLAB base workspace | Review the session's rows before closing MATLAB. |
 | `qc_info_bak_on_HH.MM.csv` / `final_qc_info_on_HH.MM.csv` | Backup during review / final log when the last matched file is saved. Keep one independent log per rater. |
-
-::: warning Previously saved datasets
-Affected v1.2.0 outputs could list channels as interpolated without changing the samples. Installing v1.3.0 does not repair those files. Reprocess from the original pre-QC dataset and verify the saved channel signals.
-:::

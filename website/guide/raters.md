@@ -13,7 +13,12 @@ Start from **independent logs of the same pre-QC recordings**. Do not point repl
 
 ## Replay a difference
 
-Select `sub-3004_ses-post_task-mid_run-1_eeg_prep`, choose raters, then **Load EEG**. Use **Open Viewer** to view the traces and navigate through epochs. Check the per-rater table for the current epoch. Use **Channel Inspect** or **IC Inspect** when the disagreement concerns a sensor or a component. The example is a comparison, not an adjudicated reference.
+Select `sub-3004_ses-post_task-mid_run-1_eeg_prep`, keep all three raters selected, and click **Load EEG**. **Open Viewer** opens the traces. In the position box between the arrows, type **9** and press Enter. The screen now shows epochs 9 to 13. Read the epoch numbers along the top, not the millisecond ticks below the traces.
+
+![EEG replay at epochs 9 to 13: epoch 11 has the red and green rater bands but no blue band](/figures/replay.png)
+<p class="caption"><strong>Read epoch 11.</strong> The red and green bands mean <code>rater_czr</code> and <code>rater_hlz</code> rejected this epoch. There is no blue band: <code>rater_pcj</code> kept it. The colors identify reviewers, not EEG amplitude or artifact severity.</p>
+
+Use **Channel Inspect** or **IC Inspect** if the difference concerns a sensor or component. The overlay shows where judgments differ; it does not decide which rater is correct.
 
 ## Use your own logs
 

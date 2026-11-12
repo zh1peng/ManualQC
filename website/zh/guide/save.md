@@ -23,7 +23,3 @@ disp(out.etc.manualqc)
 | 保存文件中的 `EEG.etc.manualqc` | 区分当前索引 `rejected_epochs_current` 和 `rejected_trials_id`；与行为数据关联前，查看 `rejected_id_space`。 |
 | MATLAB 工作区的 `QC_log` | 退出 MATLAB 前检查各文件对应的记录。 |
 | `qc_info_bak_on_HH.MM.csv`、`final_qc_info_on_HH.MM.csv` | 前者是过程备份，保存最后一个匹配文件时写出最终日志。每位评分者独立保留一份。 |
-
-::: warning 关于旧版输出
-受影响的 v1.2.0 文件可能记录了插值通道，但信号并未改变。安装 v1.3.0 不会修复旧文件；请从原始 QC 前数据重新处理，并验证保存后的通道波形。
-:::

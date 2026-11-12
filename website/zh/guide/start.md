@@ -4,17 +4,19 @@
 
 ## 准备 MATLAB
 
-1. 下载并解压 [ManualQC v1.3.0](https://github.com/zh1peng/ManualQC/archive/refs/tags/v1.3.0.zip)，保留其中的 `rater_files` 文件夹。
+1. 下载并解压 [ManualQC 当前源码](https://github.com/zh1peng/ManualQC/archive/refs/heads/master.zip)，保留其中的 `rater_files` 文件夹。
 2. 在 MATLAB 中先启动 [EEGLAB](https://eeglab.org/)，再把当前目录切换到解压后的仓库根目录。
 3. 运行以下命令。只添加工具目录，不要将测试目录递归加入路径。
 
 ```matlab
-addpath(fullfile(pwd,'manualqc1.1'))
+addpath(fullfile(pwd,'manualqc'))
 mkdir('qc_output')
 manualqc
 ```
 
-启动提示选择 **Continue**。作为插件使用时，把 `manualqc1.1` 放进 EEGLAB 的 `plugins` 目录，重新启动 EEGLAB，载入数据后从 **Tools → ManualQC** 打开。
+启动提示选择 **Continue**。作为插件使用时，把 `manualqc` 放进 EEGLAB 的 `plugins` 目录，重新启动 EEGLAB，载入数据后从 **Tools → ManualQC** 打开。
+
+若已安装旧版，请将旧工具目录从 MATLAB 路径或 EEGLAB 插件目录移出，再添加新目录。用 `which manualqc -all` 确认实际调用的是哪一份。
 
 ## 精确匹配一个文件
 
@@ -29,4 +31,33 @@ manualqc
 ![加载 sub-165 后的 ManualQC 工作台](/figures/workbench.png)
 <p class="caption"><strong>自上而下看工作台。</strong> 上方搜索和加载，中间打开各类检查窗口，信息区显示当前数据和已确认的决定。</p>
 
-**核对：** 窗口标题显示预期的数据集，信息区应显示 **327 个试次、59 个通道、52 个 IC**。初始质量分数反映信号尺度，不是数据合格线。
+**核对：** 窗口标题显示预期的数据集，信息区应显示 **327 个试次、59 个通道、52 个 IC**。该示例的振幅离散度为 **33（High，高）**。
+
+## 常用文件名表达式
+
+搜索会递归进入子目录，但只匹配**文件名**，不匹配目录路径。输入表达式时不要加引号。ManualQC 使用 MATLAB 的 [`regexpi`](https://www.mathworks.com/help/matlab/ref/regexpi.html)，不区分大小写。它不是文件通配符：查找所有数据集应写 `\.set$`，而不是 `*.set`。
+
+| 要找什么 | 可以直接输入 | 示例目录中的结果 |
+| --- | --- | --- |
+| 所有 EEGLAB 数据集 | `\.set$` | 两份数据 |
+| 只找编号 165 的被试 | `^sub-165_.*\.set$` | 一份，不会误选 1650 |
+| post 阶段的数据 | `_ses-post_.*\.set$` | sub-3004 的记录 |
+| 第一次 run，编号为 1 或 01 | `_run-0?1_eeg_prep\.set$` | 两份，不会误选 run 11 |
+
+以 `^sub-165_.*\.set$` 为例：`^` 表示开头，`sub-165_` 原样匹配，`.*` 允许中间出现任意文本，`\.` 匹配字面上的点，`$` 表示结尾。最后一个例子中的 `0?` 表示这个零可有可无。开始批量加载前，先核对搜索结果。
+
+## 如何解读振幅离散度
+
+这个分数反映典型的振幅波动，不是干净试次占比。它**不是只看前 5,000 点，也不是对长记录的每个点都计算**：
+
+1. 按时间顺序拼接所有 epoch，从头到尾等距取最多 5,000 个位置，各通道使用相同位置。
+2. 将抽到的点分为五个等长窗口，尾部不足以平分的余数不参与计算。分别求每个通道在各窗口的样本标准差，再取五个值的中位数。若总点数不足五个，则直接求各通道标准差。
+3. 对各通道的结果取 5% 截尾均值，再乘以三。分数单位与输入振幅一致，不是百分数。
+
+| 显示的整数 | 振幅离散度 |
+| --- | --- |
+| ≤18 | Low，低 |
+| 19 到 28 | Mid，中 |
+| ≥29 | High，高 |
+
+先四舍五入，再分档：28.4 显示为 **28（中）**，28.6 显示为 **29（高）**。日志保留小数，供处理前后比较和 ICC 计算。请在相同单位、参考和预处理条件下比较。短暂伪迹可能未被采到，或被跨窗口中位数淡化；平直信号也可能得低分。因此，应看波形后再判定 **Usable**、**Recheck** 或 **Not usable**。

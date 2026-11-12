@@ -234,21 +234,12 @@ qc_log = {'dataset','Rejected trials','Interpolated Channels','Removed ICs','Com
             
             set(hf,'Name',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)]);
             %set(ui.info2,'String',['You are working on: No.',num2str(n),' ',filenames{n}(1:end-4)])
-            % Initial scale in scroll. Very rough estimation of data quality
-            %   From my experience, normally (for 70% data), small figure indicates good quality
-            quality=data_quality(EEG);
-            if quality<=18;
-                meanning='Good';
-            elseif quality<=28;
-                meanning='Fair';
-            else
-                meanning='Seems bad';
-            end
+            quality=manualqc_score_label(data_quality(EEG));
             % set enable on
             nbtrials=EEG.trials ;
             nbchan=EEG.nbchan ;
             nbics=size(EEG.icaweights,1);
-            datainfo=sprintf('Trial number: %d;   Channel number: %d;   ICs number: %d;   Data Quality: %d (%s)',nbtrials,nbchan,nbics,quality,meanning);
+            datainfo=sprintf('Trials: %d;   Channels: %d;   ICs: %d;   Amplitude spread: %s',nbtrials,nbchan,nbics,quality);
             set(ui.info2,'String',datainfo)
             set(ui.scroll,'enable','on');
             set(ui.badchan,'enable','on');

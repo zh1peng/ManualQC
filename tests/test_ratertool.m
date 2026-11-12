@@ -6,7 +6,7 @@ function setupOnce(testCase)
 testCase.TestData.oldPath = path;
 root = fileparts(fileparts(mfilename('fullpath')));
 testCase.TestData.root = root;
-addpath(fullfile(root, 'manualqc1.1'));
+addpath(fullfile(root, 'manualqc'));
 addpath(fullfile(root, 'tests', 'private', 'ratertool_stubs'));
 testCase.TestData.output = tempname;
 mkdir(testCase.TestData.output);
@@ -149,6 +149,29 @@ verifySubstring(testCase, rows{shared, 9}, 'disabled');
 single = find(strcmp(rows(:, 1), 'onlyA'));
 verifySubstring(testCase, rows{single, 5}, 'fewer than two raters');
 verifyFalse(testCase, any(cellfun(@(v) isnumeric(v) && any(~isfinite(v(:))), rows(:))));
+end
+
+function testLiteralPlotLabels(testCase)
+folder = testCase.TestData.output;
+names = {'reviewer_one', 'reviewer_two'};
+files = strcat(names, '.csv');
+for i = 1:2
+    writeRater(fullfile(folder, files{i}), "sub_test", "1", 18.75);
+end
+fig = loadRaters(folder, files);
+runControl(findobj(fig, 'String', 'Compute Agreement'));
+tables = findobj(fig, 'Type', 'uitable');
+summary = tables(arrayfun(@(t) any(strcmp(t.ColumnName,'QC_Before')), tables));
+verifyEqual(testCase, summary.Data(1,3:4), {'19', '19'});
+runControl(findobj(fig, 'String', 'Plot Rater Heatmap'));
+ax = findobj(gcf, 'Type', 'axes');
+verifyNumElements(testCase, ax, 3);
+for i = 1:3
+    verifyEqual(testCase, ax(i).TickLabelInterpreter, 'none');
+    verifyEqual(testCase, string(ax(i).XTickLabel(:)), string(names(:)));
+end
+runControl(findobj(fig, 'String', 'Plot Dataset Bars'));
+verifyEqual(testCase, get(gca().Title, 'Interpreter'), 'none');
 end
 
 function testMetadataAgreement(testCase)

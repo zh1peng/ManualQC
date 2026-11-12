@@ -912,7 +912,8 @@ ui.statusText = uicontrol('Parent', ui.panelReplay, 'Units', 'Normalized', ...
             return
         end
         labels = {state.raters.name};
-        figure('Color', [1 1 1], 'Name', 'Pairwise Rater Agreement', 'Tag', 'ratertool_export');
+        figure('Color', [1 1 1], 'Name', 'Pairwise Rater Agreement', 'Tag', 'ratertool_export', ...
+            'DefaultAxesTickLabelInterpreter', 'none');
         subplot(1, 3, 1);
         showAgreementMatrix(state.metrics.pairwise.trialsJaccardMean);
         axis square;
@@ -958,7 +959,7 @@ ui.statusText = uicontrol('Parent', ui.panelReplay, 'Units', 'Normalized', ...
         ylim([0 1]);
         set(gca, 'XTickLabel', {'Trials', 'Channels', 'ICs'});
         ylabel('Group Jaccard');
-        title(['Agreement (', dataset, ')']);
+        title(['Agreement (', dataset, ')'], 'Interpreter', 'none');
     end
 
     function showAgreementMatrix(values)
@@ -1734,8 +1735,8 @@ ui.statusText = uicontrol('Parent', ui.panelReplay, 'Units', 'Normalized', ...
         for i = 1:n
             tableData{i, 1} = char(datasetMetrics.dataset{i});
             tableData{i, 2} = datasetMetrics.nRaters(i);
-            tableData{i, 3} = round(datasetMetrics.qualityBeforeMean(i), 4);
-            tableData{i, 4} = round(datasetMetrics.qualityAfterMean(i), 4);
+            tableData{i, 3} = round(datasetMetrics.qualityBeforeMean(i));
+            tableData{i, 4} = round(datasetMetrics.qualityAfterMean(i));
             tableData{i, 5} = round(datasetMetrics.trialsJaccardMean(i), 4);
             tableData{i, 6} = round(datasetMetrics.trialsF1Mean(i), 4);
             tableData{i, 7} = round(datasetMetrics.trialsPrecisionMean(i), 4);
@@ -1762,6 +1763,8 @@ ui.statusText = uicontrol('Parent', ui.panelReplay, 'Units', 'Normalized', ...
                         reason = 'fewer than two raters for this dataset';
                     end
                     tableData{i, col} = metricCell(NaN, reason);
+                elseif col <= 4
+                    tableData{i, col} = sprintf('%d', tableData{i, col});
                 end
             end
         end

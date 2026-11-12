@@ -6,14 +6,14 @@
 
 ManualQC is a MATLAB toolbox for reviewing epoched EEG in EEGLAB. A reviewer can mark epochs for rejection, select channels for spherical interpolation, inspect ICA components, and save the cleaned recording with a record of those decisions. The companion **RaterTool** compares independent reviewers and replays disagreements against the original signal.
 
-**[Illustrated handbook](https://zh1peng.github.io/ManualQC/)** · **[中文教程](https://zh1peng.github.io/ManualQC/zh/)** · [Download v1.3.0](https://github.com/zh1peng/ManualQC/archive/refs/tags/v1.3.0.zip) · [Release notes](CHANGELOG.md)
+**[Illustrated handbook](https://zh1peng.github.io/ManualQC/)** · **[中文教程](https://zh1peng.github.io/ManualQC/zh/)** · [Download current toolbox](https://github.com/zh1peng/ManualQC/archive/refs/heads/master.zip) · [Release notes](CHANGELOG.md)
 
 ## First session
 
 Start [EEGLAB](https://eeglab.org/) in MATLAB. With the extracted repository as your current folder, run:
 
 ```matlab
-addpath(fullfile(pwd,'manualqc1.1'))
+addpath(fullfile(pwd,'manualqc'))
 mkdir('qc_output')
 manualqc
 ```
@@ -24,7 +24,7 @@ manualqc
 
 <img src="website/public/figures/workbench.png" alt="ManualQC workbench with the bundled sample loaded" width="720">
 
-**Upgrading from v1.2.0:** affected outputs could list bad channels without actually interpolating their samples. Installing v1.3.0 does not repair old files. Reprocess from the original pre-QC recording; see [Save and verify](https://zh1peng.github.io/ManualQC/guide/save.html).
+The example shows **33 (High)** for amplitude spread. This is a descriptive band, not an automatic rejection. See [how the score is calculated](https://zh1peng.github.io/ManualQC/guide/start.html#amplitude-spread) and [how to search by filename](https://zh1peng.github.io/ManualQC/guide/start.html#filename-patterns).
 
 ## Compare reviewers
 
@@ -36,7 +36,7 @@ Report the toolbox version, the input preprocessing and your lab's rejection cri
 
 ## Develop locally
 
-The MATLAB toolbox is in `manualqc1.1/`. Run the [ManualQC regression checks](tests/run_manualqc_regression.m) and [RaterTool tests](tests/test_ratertool.m) in MATLAB with EEGLAB available. The website is separate; Node.js is not required to use the toolbox.
+The MATLAB toolbox is in `manualqc/`. Run the [ManualQC regression checks](tests/run_manualqc_regression.m) and [RaterTool tests](tests/test_ratertool.m) in MATLAB with EEGLAB available. The website is separate; Node.js is not required to use the toolbox.
 
 ```sh
 cd website

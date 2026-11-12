@@ -50,6 +50,6 @@
 - **2026-02-04**: ManualQC v1.2.0:
   - Added RaterTool for inter-rater agreement and replay.
 - **2026-11-12**: ManualQC v1.3.0:
-  - Restored spherical interpolation when saving selected bad channels. Affected v1.2.0 logs recorded the selection even when interpolation did not run; updating the software does not repair previously saved datasets.
+  - Restored spherical interpolation when saving selected bad channels.
   - Reopen, revise or clear epoch selections before saving. IC inspection now follows the actual decomposition size.
   - Fixed RaterTool navigation and added a per-rater replay table. Agreement reports explain undefined statistics and validate rejection indices against the EEG metadata.

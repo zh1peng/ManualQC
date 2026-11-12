@@ -13,7 +13,12 @@
 
 ## 回放一个分歧
 
-选择 `sub-3004_ses-post_task-mid_run-1_eeg_prep` 和要检查的评分者，点击 **Load EEG**。用 **Open Viewer** 查看波形并翻页，以逐评分者表格核对当前 epoch。如果分歧涉及通道或独立成分，使用 **Channel Inspect** 或 **IC Inspect**。示例记录只是供比较，并非裁定后的金标准。
+选择 `sub-3004_ses-post_task-mid_run-1_eeg_prep`，保持三位评分者全部选中，点击 **Load EEG**，再点 **Open Viewer** 打开波形。在箭头之间的位置框输入 **9** 并回车，即可看到第 9 至 13 个 epoch。上方数字是 epoch 编号，下方刻度是毫秒。
+
+![第 9 至 13 个 epoch 的实际回放；第 11 个有红、绿两条评分者色带，没有蓝色带](/figures/replay.png)
+<p class="caption"><strong>看第 11 个 epoch。</strong> 红色和绿色分别表示 <code>rater_czr</code> 和 <code>rater_hlz</code> 拒绝了该试次；没有蓝色，说明 <code>rater_pcj</code> 保留了它。颜色区分评分者，不代表振幅或伪迹严重程度。</p>
+
+如果分歧涉及通道或独立成分，使用 **Channel Inspect** 或 **IC Inspect**。回放能定位分歧，不能判定哪位评分者正确。
 
 ## 使用自己的评分表
 
