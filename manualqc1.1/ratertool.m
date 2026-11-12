@@ -299,25 +299,22 @@ ui.raterList = uicontrol('Parent', ui.panelReplay, 'Units', 'Normalized', ...
     'Callback', @replaySelectionChangedCmd);
 
 ui.epochText = uicontrol('Parent', ui.panelReplay, 'Units', 'Normalized', ...
-    'Position', [0.34 0.70 0.28 0.12], ...
+    'Position', [0.34 0.69 0.21 0.14], ...
     'Style', 'text', ...
-    'String', 'Epoch: NA', ...
+    'String', 'Epoch: N/A', ...
     'BackgroundColor', bgblue, ...
     'ForegroundColor', txtblue, ...
     'FontSize', 9, ...
     'HorizontalAlignment', 'left');
 
-ui.rejectionText = uicontrol('Parent', ui.panelReplay, 'Units', 'Normalized', ...
-    'Position', [0.34 0.58 0.28 0.12], ...
-    'Style', 'text', ...
-    'String', 'Rejected by: NA', ...
-    'BackgroundColor', bgblue, ...
-    'ForegroundColor', txtblue, ...
-    'FontSize', 9, ...
-    'HorizontalAlignment', 'left');
+ui.decisionsTable = uitable('Parent', ui.panelReplay, 'Units', 'Normalized', ...
+    'Position', [0.34 0.01 0.64 0.67], ...
+    'RowName', [], 'ColumnName', {'Rater', 'Epoch decision'}, ...
+    'ColumnWidth', {'fit', '1x'}, 'ColumnEditable', [false false], ...
+    'Data', cell(0, 2), 'FontSize', 9);
 
 ui.statusText = uicontrol('Parent', ui.panelReplay, 'Units', 'Normalized', ...
-    'Position', [0.34 0.46 0.28 0.12], ...
+    'Position', [0.55 0.69 0.43 0.14], ...
     'Style', 'text', ...
     'String', 'Status: idle', ...
     'BackgroundColor', bgblue, ...
@@ -325,12 +322,6 @@ ui.statusText = uicontrol('Parent', ui.panelReplay, 'Units', 'Normalized', ...
     'FontSize', 9, ...
     'HorizontalAlignment', 'left');
 
-ui.axes = axes('Parent', ui.panelReplay, 'Units', 'Normalized', ...
-    'Position', [0.64 0.12 0.34 0.70], ...
-    'Color', [1 1 1], ...
-    'Visible', 'off');
-text(0.5, 0.5, 'Use Open Viewer to inspect epochs', ...
-    'Parent', ui.axes, 'HorizontalAlignment', 'center');
     function loadFilesCmd(~, ~)
         [files, path] = uigetfile({'*.csv;*.xlsx;*.xls', 'Rater files (*.csv, *.xlsx, *.xls)'}, ...
             'Select rater files', 'MultiSelect', 'on');
@@ -368,6 +359,7 @@ text(0.5, 0.5, 'Use Open Viewer to inspect epochs', ...
         end
         set(ui.raterTable, 'Data', data);
         set(ui.raterList, 'String', cellstr(string({state.raters.name})), 'Value', 1:numel(state.raters));
+        updateReplayDetails();
     end
 
     function raterTableEditCmd(~, event)
@@ -410,6 +402,7 @@ text(0.5, 0.5, 'Use Open Viewer to inspect epochs', ...
         state.metrics = computeAgreementMetrics();
         updateSummaryTable();
         updateDatasetPopup();
+        updateReplayDetails();
         updateStatus('Agreement computed.');
     end
 
@@ -503,11 +496,16 @@ text(0.5, 0.5, 'Use Open Viewer to inspect epochs', ...
     end
 
     function datasetSelectCmd(~, ~)
-        updateReplayPlot(false);
+        updateReplayDetails();
+        if ~isempty(state.eeg) && strcmp(state.eegDataset, getSelectedDataset())
+            updateStatus('EEG loaded.');
+        else
+            updateStatus('Selected EEG not loaded.');
+        end
     end
 
     function replaySelectionChangedCmd(~, ~)
-        updateReplayPlot(false);
+        updateReplayDetails();
     end
 
     function loadEegCmd(~, ~)
@@ -531,7 +529,7 @@ text(0.5, 0.5, 'Use Open Viewer to inspect epochs', ...
         state.eegDataset = dataset;
         state.currentEpoch = 1;
         updateStatus('EEG loaded.');
-        updateReplayPlot(false);
+        updateReplayDetails();
         openEegViewerCmd();
     end
 
@@ -696,43 +694,31 @@ text(0.5, 0.5, 'Use Open Viewer to inspect epochs', ...
         dataset = items{idx};
     end
 
-    function updateReplayPlot(forceLoad)
+    function updateReplayDetails()
         dataset = getSelectedDataset();
-        if isempty(dataset)
-            cla(ui.axes);
-            title(ui.axes, 'EEG Viewer');
-            return
-        end
-        if isempty(state.eeg) || ~strcmp(state.eegDataset, dataset)
-            if forceLoad
-                return
-            end
-            cla(ui.axes);
-            title(ui.axes, 'EEG Viewer');
-            set(ui.epochText, 'String', 'Epoch: NA');
-            set(ui.rejectionText, 'String', 'Rejected by: NA');
-            return
-        end
-        if state.eeg.trials < 1
+        if isempty(dataset) || isempty(state.eeg) || ~strcmp(state.eegDataset, dataset) || state.eeg.trials < 1
+            set(ui.epochText, 'String', 'Epoch: N/A');
+            set(ui.decisionsTable, 'Data', cell(0, 2));
             return
         end
         if state.currentEpoch < 1 || state.currentEpoch > state.eeg.trials
             state.currentEpoch = 1;
         end
         [activeRaters, decisions] = getActiveRaterDecisions(dataset);
-        [rejNames, keepNames, missingNames] = getEpochStatus(activeRaters, decisions, state.currentEpoch);
-        epochStr = sprintf('Epoch: %d / %d', state.currentEpoch, state.eeg.trials);
-        set(ui.epochText, 'String', epochStr);
-        rejText = sprintf('Rejected by: %s', joinNames(rejNames));
-        keepText = sprintf(' Kept by: %s', joinNames(keepNames));
-        missingText = '';
-        if ~isempty(missingNames)
-            missingText = [' No data: ', joinNames(missingNames)];
+        rows = cell(numel(activeRaters), 2);
+        for i = 1:numel(activeRaters)
+            rater = state.raters(activeRaters(i));
+            rows{i, 1} = char(rater.name);
+            if ~isKey(rater.map, dataset)
+                rows{i, 2} = 'No data';
+            elseif ismember(state.currentEpoch, decisions{i}.rejectedTrials)
+                rows{i, 2} = 'Rejected';
+            else
+                rows{i, 2} = 'Kept';
+            end
         end
-        set(ui.rejectionText, 'String', [rejText, ';', keepText, ';', missingText]);
-
-        cla(ui.axes);
-        title(ui.axes, 'EEG Viewer');
+        set(ui.epochText, 'String', sprintf('Epoch: %d / %d', state.currentEpoch, state.eeg.trials));
+        set(ui.decisionsTable, 'Data', rows);
     end
     function [activeRaters, decisions] = getActiveRaterDecisions(dataset)
         if isempty(state.raters)
@@ -751,30 +737,7 @@ text(0.5, 0.5, 'Use Open Viewer to inspect epochs', ...
             if isKey(state.raters(r).map, dataset)
                 decisions{i} = state.raters(r).map(dataset);
             else
-                decisions{i} = struct('rejectedTrials', [], 'interpolatedChannels', {}, 'removedICs', []);
-            end
-        end
-    end
-
-    function [rejNames, keepNames, missingNames] = getEpochStatus(activeRaters, decisions, epochIdx)
-        rejNames = {};
-        keepNames = {};
-        missingNames = {};
-        for i = 1:numel(activeRaters)
-            rIdx = activeRaters(i);
-            name = char(state.raters(rIdx).name);
-            if ~isfield(decisions{i}, 'rejectedTrials')
-                missingNames{end+1} = name; %#ok<AGROW>
-                continue
-            end
-            if isempty(decisions{i}.rejectedTrials) && ~isKey(state.raters(rIdx).map, getSelectedDataset())
-                missingNames{end+1} = name; %#ok<AGROW>
-                continue
-            end
-            if ismember(epochIdx, decisions{i}.rejectedTrials)
-                rejNames{end+1} = name; %#ok<AGROW>
-            else
-                keepNames{end+1} = name; %#ok<AGROW>
+                decisions{i} = struct('rejectedTrials', [], 'interpolatedChannels', {{}}, 'removedICs', []);
             end
         end
     end
@@ -1858,14 +1821,6 @@ text(0.5, 0.5, 'Use Open Viewer to inspect epochs', ...
     function out = metricText(value, reason)
         out = metricCell(value, reason);
         if isnumeric(out), out = sprintf('%.3f', value); end
-    end
-
-    function out = joinNames(names)
-        if isempty(names)
-            out = 'none';
-        else
-            out = strjoin(names, ', ');
-        end
     end
 
 end

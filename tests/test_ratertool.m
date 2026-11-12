@@ -204,6 +204,45 @@ for h = images'
 end
 end
 
+function testReplayDecisionLayout(testCase)
+folder = testCase.TestData.output;
+dataset = "sub-165_task-mid_run-01_eeg_prep";
+names = {'first_reviewer_with_a_long_display_name', 'second_reviewer', 'third_reviewer'};
+files = strcat(names, '.csv');
+writeRater(fullfile(folder, files{1}), dataset, "1", 1);
+writeRater(fullfile(folder, files{2}), dataset, "None", 1);
+writeRater(fullfile(folder, files{3}), "z_other_dataset", "None", 1);
+fig = loadRaters(folder, files);
+set(findobj(fig, 'String', 'Data root path'), 'String', fullfile(testCase.TestData.root, 'rater_files'));
+runControl(findobj(fig, 'String', 'Compute Agreement'));
+runControl(findobj(fig, 'String', 'Load EEG'));
+panel = findobj(fig, 'Type', 'uipanel', 'Title', 'Replay / Inspection');
+t = findobj(panel, 'Type', 'uitable');
+verifyEqual(testCase, t.Data, [names(:), {'Rejected'; 'Kept'; 'No data'}]);
+labels = findobj(panel, 'Style', 'text');
+epoch = labels(arrayfun(@(h) startsWith(h.String, 'Epoch: 1 /'), labels));
+assertNumElements(testCase, epoch, 1);
+status = findobj(panel, 'String', 'Status: EEG loaded.');
+for width = [820 1200]
+    set(fig, 'Units', 'pixels', 'Position', [40 80 width 570]);
+    drawnow;
+    e = getpixelposition(epoch);
+    s = getpixelposition(status);
+    p = getpixelposition(t);
+    verifyLessThanOrEqual(testCase, e(1)+e(3), s(1)+1);
+    verifyLessThanOrEqual(testCase, p(2)+p(4), min(e(2), s(2))+1);
+end
+list = findobj(panel, 'Style', 'listbox');
+set(list, 'Value', [2 3]);
+runControl(list);
+verifyEqual(testCase, t.Data, [names(2:3)', {'Kept'; 'No data'}]);
+popup = findobj(panel, 'Style', 'popupmenu');
+set(popup, 'Value', 2);
+runControl(popup);
+verifyEmpty(testCase, t.Data);
+verifyEqual(testCase, epoch.String, 'Epoch: N/A');
+end
+
 function writeRater(file, datasets, trials, quality)
 n = numel(datasets);
 T = table(datasets, trials, repmat("None", n, 1), repmat("None", n, 1), ...
