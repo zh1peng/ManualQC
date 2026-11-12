@@ -88,8 +88,22 @@ expectedLabels = chanliststr;
 expected = pop_rejepoch(original, tmprej, 0);
 expected = pop_interp(expected, chanlisttmp, 'spherical');
 prepareSave('interpolated.set');
+filenames = {'interpolated.set'};  % The last dataset writes both CSV summaries.
+comment = 'blink, stronger at "Fz"';
+set(ui.comments, 'String', comment);
+runButton(ui.add);
 runButton(ui.save);
 saved = pop_loadset('filename', 'qc_interpolated.set', 'filepath', outputDir);
+for pattern = {'qc_info_bak_on_*.csv', 'final_qc_info_on_*.csv'}
+    csvFile = dir(fullfile(outputDir, pattern{1}));
+    assert(isscalar(csvFile));
+    logTable = readtable(fullfile(outputDir, csvFile.name), 'TextType', 'string', 'VariableNamingRule', 'preserve');
+    assert(isequal(size(logTable), [1 8]));
+    assert(strcmp(logTable.Comments, comment));
+    assert(strcmp(logTable.Rating, 'Usable'));
+    assert(logTable.("Quality Score Before") == str2double(saved.etc.manualqc.quality_before));
+    assert(logTable.("Quality Score After") == str2double(saved.etc.manualqc.quality_after));
+end
 assert(max(abs(double(saved.data(:))-double(expected.data(:)))) < 1e-4);
 assert(isequal(saved.etc.EEGdojo.TrialID, [102; 104; 105; 106; 107; 108]));
 assert(isequal(saved.etc.manualqc.rejected_trials_id, [101 103]));

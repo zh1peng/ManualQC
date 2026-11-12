@@ -3537,9 +3537,9 @@ for z=1:size(cellArray, 1)
                 var = 'FALSE';
             end
         end
-        % If newer version of Excel -> Quotes 4 Strings
-        if excelYear > 2000
-            var = ['"' var '"'];
+        % Quote CSV fields containing a delimiter, double quote, or line break.
+        if excelYear > 2000 || contains(var, {separator, '"', char(13), char(10)})
+            var = ['"' strrep(var, '"', '""') '"'];
         end
         
         % OUTPUT value
