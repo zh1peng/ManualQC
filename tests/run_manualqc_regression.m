@@ -12,10 +12,10 @@ cleanup = onCleanup(@() restoreEnvironment(oldFigures, oldVisibility, oldPath, o
 addpath(eeglabRoot);
 addpath(genpath(fullfile(eeglabRoot, 'functions')));
 addpath(fullfile(fileparts(testDir), 'manualqc'));
-assert(strcmp(manualqc_score_label(18.49), '18 (Low, <=18)'));
-assert(strcmp(manualqc_score_label(18.50), '19 (Mid, 19-28)'));
-assert(strcmp(manualqc_score_label(28.49), '28 (Mid, 19-28)'));
-assert(strcmp(manualqc_score_label(28.50), '29 (High, >=29)'));
+assert(strcmp(manualqc_score_label(18.49), '18 (High quality, <=18)'));
+assert(strcmp(manualqc_score_label(18.50), '19 (Moderate quality, 19-28)'));
+assert(strcmp(manualqc_score_label(28.49), '28 (Moderate quality, 19-28)'));
+assert(strcmp(manualqc_score_label(28.50), '29 (Low quality, >=29)'));
 assert(strcmp(manualqc_score_label(NaN), 'N/A'));
 set(0, 'DefaultFigureVisible', 'off');
 startupPath = fullfile(testDir, 'private', 'startup_stubs');

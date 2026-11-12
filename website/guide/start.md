@@ -31,7 +31,7 @@ Click **Search**. Compare the filename in the results window with the expression
 ![ManualQC workbench after loading the bundled sub-165 dataset](/figures/workbench.png)
 <p class="caption"><strong>Read the workbench from top to bottom.</strong> Search and load at the top; inspect epochs, channels and ICs in the middle; check the dataset and your recorded decisions in the information panel.</p>
 
-**Checkpoint:** the window title identifies the dataset. For this sample, the information panel reports **327 trials, 59 channels and 52 ICs**. The sample's amplitude-spread score is **33 (High)**.
+**Checkpoint:** the window title identifies the dataset. For this sample, the information panel reports **327 trials, 59 channels and 52 ICs**. The workbench displays **Data Quality: 33 (Low quality, >=29)**.
 
 ## Filename patterns
 
@@ -46,18 +46,18 @@ Search checks **filenames**, not folder paths, including files in subfolders. Ty
 
 Read `^sub-165_.*\.set$` from left to right: `^` anchors the start; `sub-165_` is literal; `.*` allows any intervening text; `\.` matches a literal dot; `$` anchors the end. In the run pattern, `0?` means an optional zero. Always check the results before loading a batch.
 
-## Amplitude spread
+## Data Quality
 
-The score describes typical amplitude variation, not the proportion of clean epochs. The current calculation is **not** limited to the first 5,000 points and does **not** process every point of a long recording:
+The score measures typical amplitude variation. For recordings with the same units, reference and preprocessing, lower values generally indicate better quality. The current calculation is **not** limited to the first 5,000 points and does **not** process every point of a long recording:
 
 1. Concatenate epochs in time order. Sample up to 5,000 equally spaced positions from first to last, using the same positions for all channels.
 2. Split the sampled sequence into five equal-length windows; omit any trailing remainder. Compute each channel's sample standard deviation per window, then take its median across windows. With fewer than five positions, use one standard deviation per channel.
 3. Take a 5% trimmed mean across channels and multiply by three. The result has the same units as the input amplitudes; it is not a percentage.
 
-| Displayed integer | Spread band |
+| Displayed integer | Quality band |
 | --- | --- |
-| 18 or less | Low |
-| 19 to 28 | Mid |
-| 29 or more | High |
+| 18 or less | High quality |
+| 19 to 28 | Moderate quality |
+| 29 or more | Low quality |
 
-Round first, then read the band: 28.4 displays as **28 (Mid)**; 28.6 as **29 (High)**. Logs retain decimal scores for before/after comparison and ICC. Compare recordings with the same units, reference and preprocessing. A brief artifact can be missed by sampling or suppressed by the median; a flat signal can score low. Inspect the traces before choosing **Usable**, **Recheck** or **Not usable**.
+Round first, then read the band: 28.4 displays as **28 (Moderate quality)**; 28.6 as **29 (Low quality)**. Logs retain decimal scores for before/after comparison and ICC. A brief artifact can be missed by sampling or suppressed by the median; a flat signal can score low. Inspect the traces before choosing **Usable**, **Recheck** or **Not usable**.

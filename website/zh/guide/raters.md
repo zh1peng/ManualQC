@@ -11,12 +11,12 @@
 ![示例三份评分表加载后的 RaterTool 结果和回放区域](/figures/raters.png)
 <p class="caption"><strong>分三层阅读。</strong> 顶部识别评分者，中部汇总一致性，底部把当前数据集和 epoch 对应到每位评分者的判断。</p>
 
-## 回放一个分歧
+## 在同一页查看一致与分歧
 
-选择 `sub-3004_ses-post_task-mid_run-1_eeg_prep`，保持三位评分者全部选中，点击 **Load EEG**，再点 **Open Viewer** 打开波形。在箭头之间的位置框输入 **9** 并回车，即可看到第 9 至 13 个 epoch。上方数字是 epoch 编号，下方刻度是毫秒。
+选择 `sub-165_task-mid_run-01_eeg_prep`，保持三位评分者全部选中，点击 **Load EEG**，再点 **Open Viewer** 打开波形。在箭头之间的位置框输入 **175** 并回车，即可看到第 175 至 179 个 epoch。上方数字是 epoch 编号，下方刻度是毫秒。
 
-![第 9 至 13 个 epoch 的实际回放；第 11 个有红、绿两条评分者色带，没有蓝色带](/figures/replay.png)
-<p class="caption"><strong>看第 11 个 epoch。</strong> 红色和绿色分别表示 <code>rater_czr</code> 和 <code>rater_hlz</code> 拒绝了该试次；没有蓝色，说明 <code>rater_pcj</code> 保留了它。颜色区分评分者，不代表振幅或伪迹严重程度。</p>
+![第 175 至 179 个 epoch 的回放，第 177 和 178 个 epoch 都有三种评分者色带](/figures/replay.png)
+<p class="caption"><strong>对照这五个 epoch。</strong> 三人都保留了第 175 个，都剔除了第 177 和 178 个。第 176 个只有 <code>rater_czr</code>（红）和 <code>rater_pcj</code>（蓝）剔除，第 179 个只有 <code>rater_pcj</code> 剔除。绿色对应 <code>rater_hlz</code>。</p>
 
 如果分歧涉及通道或独立成分，使用 **Channel Inspect** 或 **IC Inspect**。回放能定位分歧，不能判定哪位评分者正确。
 

@@ -24,7 +24,7 @@ manualqc
 
 <img src="website/public/figures/workbench.png" alt="ManualQC workbench with the bundled sample loaded" width="720">
 
-The example shows **33 (High)** for amplitude spread. This is a descriptive band, not an automatic rejection. See [how the score is calculated](https://zh1peng.github.io/ManualQC/guide/start.html#amplitude-spread) and [how to search by filename](https://zh1peng.github.io/ManualQC/guide/start.html#filename-patterns).
+The workbench displays **Data Quality: 33 (Low quality, >=29)**. Lower scores generally indicate better quality for recordings with comparable preprocessing. See [how the score is calculated](https://zh1peng.github.io/ManualQC/guide/start.html#data-quality) and [how to search by filename](https://zh1peng.github.io/ManualQC/guide/start.html#filename-patterns).
 
 ## Compare reviewers
 

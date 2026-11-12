@@ -5,11 +5,11 @@ if ~isfinite(score)
     label = 'N/A';
     return
 elseif score <= 18
-    band = 'Low, <=18';
+    band = 'High quality, <=18';
 elseif score <= 28
-    band = 'Mid, 19-28';
+    band = 'Moderate quality, 19-28';
 else
-    band = 'High, >=29';
+    band = 'Low quality, >=29';
 end
 label = sprintf('%d (%s)', score, band);
 end

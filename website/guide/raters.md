@@ -11,12 +11,12 @@ Start from **independent logs of the same pre-QC recordings**. Do not point repl
 ![RaterTool displaying the three example rater files, agreement summary and replay controls](/figures/raters.png)
 <p class="caption"><strong>Three levels of inspection.</strong> Inputs identify the raters; Summary compares their decisions; Replay connects a selected dataset and epoch to individual rater decisions.</p>
 
-## Replay a difference
+## Replay agreement and disagreement
 
-Select `sub-3004_ses-post_task-mid_run-1_eeg_prep`, keep all three raters selected, and click **Load EEG**. **Open Viewer** opens the traces. In the position box between the arrows, type **9** and press Enter. The screen now shows epochs 9 to 13. Read the epoch numbers along the top, not the millisecond ticks below the traces.
+Select `sub-165_task-mid_run-01_eeg_prep`, keep all three raters selected, and click **Load EEG**. **Open Viewer** opens the traces. In the position box between the arrows, type **175** and press Enter. The screen now shows epochs 175 to 179. Read the epoch numbers along the top, not the millisecond ticks below the traces.
 
-![EEG replay at epochs 9 to 13: epoch 11 has the red and green rater bands but no blue band](/figures/replay.png)
-<p class="caption"><strong>Read epoch 11.</strong> The red and green bands mean <code>rater_czr</code> and <code>rater_hlz</code> rejected this epoch. There is no blue band: <code>rater_pcj</code> kept it. The colors identify reviewers, not EEG amplitude or artifact severity.</p>
+![Replay of epochs 175–179 with all three rater bands on epochs 177 and 178](/figures/replay.png)
+<p class="caption"><strong>Compare the five epochs.</strong> All three raters kept epoch 175 and rejected 177 and 178. Only <code>rater_czr</code> (red) and <code>rater_pcj</code> (blue) rejected 176. Only <code>rater_pcj</code> rejected 179. Green identifies <code>rater_hlz</code>.</p>
 
 Use **Channel Inspect** or **IC Inspect** if the difference concerns a sensor or component. The overlay shows where judgments differ; it does not decide which rater is correct.
 
