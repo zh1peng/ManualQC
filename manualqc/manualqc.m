@@ -239,7 +239,7 @@ qc_log = {'dataset','Rejected trials','Interpolated Channels','Removed ICs','Com
             nbtrials=EEG.trials ;
             nbchan=EEG.nbchan ;
             nbics=size(EEG.icaweights,1);
-            datainfo=sprintf('Trials: %d;   Channels: %d;   ICs: %d;   Amplitude spread: %s',nbtrials,nbchan,nbics,quality);
+            datainfo=sprintf('Trials: %d;   Channels: %d;   ICs: %d;   Data Quality: %s',nbtrials,nbchan,nbics,quality);
             set(ui.info2,'String',datainfo)
             set(ui.scroll,'enable','on');
             set(ui.badchan,'enable','on');
