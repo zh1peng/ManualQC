@@ -79,7 +79,7 @@
 %   - add RaterTool for inter-rater agreement and replay inspection
 
 function manualqc()
-gui_version='v1.2.0';
+gui_version=['v' manualqc_version()];
 line1='ManualQC will use its own GUI state and leave the base workspace unchanged.\n';
 line2='EEGLAB save options will only be adjusted during the save step and then restored.\n';
 line3= 'If you have any unsaved works, press Cancel to go back.';
@@ -99,11 +99,12 @@ end
 
 %% check version
 disp('Checking GitHub repository. Please be patient.')
-url  = 'https://github.com/zh1peng/ManualQC/blob/master/README.md';
+url  = 'https://raw.githubusercontent.com/zh1peng/ManualQC/master/README.md';
 try
     str = webread(url);
-    [idx1, idx2] = regexp(str, 'Current version: '); 
-    gitversion = str(idx2+1:idx2+6);
+    match = regexpi(str, '(?m)^#### Current Version:\s*(v\d+\.\d+\.\d+)', 'tokens', 'once');
+    if isempty(match), error('Version header not found'); end
+    gitversion = match{1};
     
     if strcmp(gui_version, gitversion)
         disp('You have the latest version.')
@@ -118,7 +119,7 @@ try
         disp([gitversion,' is available on github'])
     end
 catch
-    disp('No internet connection');
+    disp('Could not check the version on GitHub.');
 end
     
 %% Define call back functions

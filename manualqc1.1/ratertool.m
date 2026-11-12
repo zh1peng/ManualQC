@@ -33,7 +33,7 @@
 %   5) Select a dataset and click "Load EEG", then use Replay controls.
 
 function ratertool()
-gui_version = 'v0.1';
+gui_version = ['v' manualqc_version()];
 addpath(fileparts(mfilename('fullpath')));
 bgblue = [0.66 0.76 1.00];
 btnblue = [0.93 0.96 1];

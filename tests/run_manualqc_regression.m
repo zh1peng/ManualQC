@@ -8,7 +8,7 @@ oldVisibility = get(0, 'DefaultFigureVisible');
 oldFigures = findall(0, 'Type', 'figure');
 outputDir = tempname;
 mkdir(outputDir);
-cleanup = onCleanup(@restoreEnvironment);
+cleanup = onCleanup(@() restoreEnvironment(oldFigures, oldVisibility, oldPath, outputDir));
 addpath(eeglabRoot);
 addpath(genpath(fullfile(eeglabRoot, 'functions')));
 addpath(fullfile(fileparts(testDir), 'manualqc1.1'));
@@ -20,6 +20,8 @@ rmpath(startupPath);
 
 global EEG tmprej ui chanlisttmp chanliststr ic2remove just_ic filenames n
 locations = readlocs(fullfile(eeglabRoot, 'sample_locs', 'Standard-10-20-Cap81.ced'));
+% Fiducials in the cap file do not correspond to rows of EEG signal.
+locations = locations(~strcmpi({locations.type}, 'FID') & ~strcmpi({locations.type}, 'IGNORE'));
 rng(17);
 EEG = makeDataset(8, 0);
 tmprej = [];
@@ -170,16 +172,16 @@ fprintf('All ManualQC regression checks passed.\n');
         n = 1;
         set(ui.savedir, 'String', outputDir);
         set(ui.prefix, 'String', 'qc_');
-        ratings = findobj(ui.rating, 'Style', 'radiobutton');
-        ui.rating.SelectedObject = ratings(1);
+        ui.rating.SelectedObject = ui.r1;
     end
 
-    function restoreEnvironment
-        delete(setdiff(findall(0, 'Type', 'figure'), oldFigures));
-        set(0, 'DefaultFigureVisible', oldVisibility);
-        path(oldPath);
-        rmdir(outputDir, 's');
-    end
+end
+
+function restoreEnvironment(oldFigures, oldVisibility, oldPath, outputDir)
+delete(setdiff(findall(0, 'Type', 'figure'), oldFigures));
+set(0, 'DefaultFigureVisible', oldVisibility);
+path(oldPath);
+rmdir(outputDir, 's');
 end
 
 function runButton(button)

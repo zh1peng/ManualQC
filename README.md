@@ -1,7 +1,7 @@
 ## Manual QC
 <a href="https://imgur.com/XYa5qyJ"><img src="https://i.imgur.com/XYa5qyJ.png" title="source: imgur.com" /></a>
 
-#### Current Version: v1.2.0
+#### Current Version: v1.3.0
 #### This GUI was developed using Matlab 2016a.
 If you use this tool in your paper, please cite it as follows:
 
@@ -66,6 +66,12 @@ Believing this tool could benefit others performing manual QC on EEG data, I rep
   - improve recording of QC information to save epoch information, if eegdojo is used in auto reject, the remained epoch idx is updated. This is helpful to do joint modeling with behavioral data.
   - improve the data quality function so that it is more global instead of just the fisrt 1000 data points window.
 - **2026-02-04**: ManualQC v1.2.0:
+  - Added RaterTool for inter-rater agreement and replay.
+- **2026-11-12**: ManualQC v1.3.0:
+  - Restored spherical interpolation when saving selected bad channels. Affected v1.2.0 logs recorded the selection even when interpolation did not run; updating the software does not repair previously saved datasets.
+  - Reopen, revise or clear epoch selections before saving. IC inspection now follows the actual decomposition size.
+  - Fixed RaterTool navigation and added a per-rater replay table. Agreement reports explain undefined statistics and validate rejection indices against the EEG metadata.
+
 #### Use it separately from EEGLAB:
 1. Add EEGLAB to the MATLAB path.
 2. Add ManualQC to the MATLAB path.
