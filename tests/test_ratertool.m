@@ -241,6 +241,8 @@ runControl(findobj(fig, 'String', 'Compute Agreement'));
 runControl(findobj(fig, 'String', 'Load EEG'));
 panel = findobj(fig, 'Type', 'uipanel', 'Title', 'Replay / Inspection');
 t = findobj(panel, 'Type', 'uitable');
+% Classic figure tables on older MATLAB releases accept pixel widths.
+verifyTrue(testCase, all(cellfun(@isnumeric, t.ColumnWidth)));
 verifyEqual(testCase, t.Data, [names(:), {'Rejected'; 'Kept'; 'No data'}]);
 labels = findobj(panel, 'Style', 'text');
 epoch = labels(arrayfun(@(h) startsWith(h.String, 'Epoch: 1 /'), labels));
