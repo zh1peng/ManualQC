@@ -1,8 +1,9 @@
 ---
-title: Field manual
+title: ManualQC Documentation
+titleTemplate: false
 outline: false
 ---
-<p class="edition">EEGLAB FIELD MANUAL · v1.3.0</p>
+<p class="edition">ManualQC for EEGLAB · v1.3.0</p>
 
 # ManualQC
 
@@ -22,4 +23,10 @@ outline: false
 | [03 · Channels and ICs](/guide/channels-ics) | Does the problem follow a sensor or a component? | Separate lists for interpolation and removal |
 | [04 · Save](/guide/save) | Can another person reconstruct the decision? | A new dataset, embedded QC record and log |
 
-**Working with a second reviewer?** Review the same input independently, then use [RaterTool](/guide/raters) to locate disagreements and inspect the signal behind them.
+## Why record manual EEG quality control decisions?
+
+After automated preprocessing, some artifacts still require judgment. For example, ICLabel estimates how likely an independent component is to reflect brain activity, eye movements or another source. When the classification is uncertain, a reviewer can inspect the component’s scalp map, time course and spectrum before deciding whether to remove it. [Pion-Tonachini et al., 2019](https://doi.org/10.1016/j.neuroimage.2019.05.026)
+
+Those decisions matter when someone asks how many trials entered an analysis. In a review of 132 visual N400 studies, 40.2% did not report how many trials remained after exclusions for artifacts or behavioral errors. ManualQC saves the rejected epochs, interpolated channels, removed components and reviewer comments with each processed dataset. The [QC log](/guide/save) brings those decisions together across recordings. [Šoškić et al., 2022](https://doi.org/10.1007/s11065-021-09513-4)
+
+Two reviewers can reject the same number of epochs and still disagree about which ones to discard. For rater training, review the same recording independently, then use [RaterTool](/guide/raters) to display both sets of markings on the pre-QC waveforms. A disputed epoch gives the team a concrete example to discuss when applying its artifact criteria. [Shirk et al., 2017](https://doi.org/10.3389/fnins.2017.00322) · [Boudewyn et al., 2023](https://doi.org/10.1111/psyp.14365)

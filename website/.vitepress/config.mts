@@ -14,7 +14,7 @@ function navigation(zh = false) {
   return {
     nav: [{ text: zh ? '手册' : 'Handbook', link: root }, { text: zh ? '快速开始' : 'Quickstart', link: root + 'guide/start' }],
     sidebar: [
-      { text: zh ? '使用手册' : 'Field manual', items: [{text: zh ? '概览' : 'Overview', link: root}] },
+      { text: zh ? '使用手册' : 'Documentation', items: [{text: zh ? '概览' : 'Overview', link: root}] },
       { text: zh ? '单人质量控制' : 'Single-rater QC', items: chapters.slice(0,4).map(item) },
       { text: 'RaterTool', items: chapters.slice(4).map(item) }
     ]
@@ -25,11 +25,11 @@ function navigation(zh = false) {
 export default defineConfig({
   base: '/ManualQC/',
   title: 'ManualQC',
-  description: 'An illustrated field manual for EEG quality control with MATLAB and EEGLAB.',
+  description: 'ManualQC documentation for visual EEG quality control and rater training in EEGLAB.',
   head: [['link', { rel: 'icon', href: '/ManualQC/manualqc.svg', type: 'image/svg+xml' }]],
   locales: {
     root: { label: 'English', lang: 'en-US', themeConfig: navigation() },
-    zh: { label: '简体中文', lang: 'zh-CN', themeConfig: {
+    zh: { label: '简体中文', lang: 'zh-CN', description: 'ManualQC 使用手册：在 EEGLAB 中进行脑电人工质控和评分者培训。', themeConfig: {
       ...navigation(true), outlineTitle: '本页内容', docFooter: { prev: '上一章', next: '下一章' }, sidebarMenuLabel: '目录', returnToTopLabel: '返回顶部'
     } }
   },
